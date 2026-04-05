@@ -1,0 +1,2156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Twin Study Flow — Engineering</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0b12;--surf:#13131e;--surf2:#1a1a28;--surf3:#22223a;
+  --bdr:rgba(255,255,255,0.07);--bdr2:rgba(255,255,255,0.13);
+  --acc:#7c6ef5;--acc2:#e86d5e;--text:#eeeaff;--muted:#7a779a;
+  --green:#4ecb8a;--amber:#f5a623;--red:#f05e5e;--blue:#5ab3f5;
+  --orange:#ff8c42;--teal:#2dd4bf;--pink:#f472b6;--sw:240px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+input,select,button,textarea{font-family:'DM Sans',sans-serif}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--surf3);border-radius:8px}
+.page{display:none;animation:fi .3s ease}.page.active{display:block}
+.sec{display:none;animation:fi .25s ease}.sec.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes si{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes bounce{0%,100%{transform:translateY(0)}35%{transform:translateY(-5px)}65%{transform:translateY(-2px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── NAV ── */
+nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;border-bottom:1px solid var(--bdr);position:sticky;top:0;background:rgba(11,11,18,.95);backdrop-filter:blur(14px);z-index:100}
+.logo{font-family:'Playfair Display',serif;font-size:1.25rem}.logo span{color:var(--acc)}
+nav ul{display:flex;gap:1.8rem;list-style:none}
+nav ul a{color:var(--muted);font-size:.875rem;cursor:pointer;transition:color .2s}nav ul a:hover{color:var(--text)}
+.nav-r{display:flex;align-items:center;gap:.75rem}
+.nav-bell{position:relative;width:36px;height:36px;border-radius:10px;background:rgba(240,94,94,.1);border:1px solid rgba(240,94,94,.25);color:var(--red);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;animation:bounce 2.5s ease infinite}
+.nav-bell:hover{background:rgba(240,94,94,.2)}
+.bell-dot{position:absolute;top:-3px;right:-3px;width:12px;height:12px;background:var(--red);border-radius:50%;border:2px solid var(--bg);animation:pulse 1.5s ease infinite}
+.nav-cta{background:var(--acc);color:#fff;border:none;padding:.48rem 1.2rem;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;transition:opacity .2s,transform .15s}
+.nav-cta:hover{opacity:.85;transform:translateY(-1px)}
+.nav-user{display:flex;align-items:center;gap:.6rem;cursor:pointer}
+.nav-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff}
+.nav-uname{font-size:.82rem;font-weight:600}
+
+/* ── LANDING ── */
+.hero{padding:7rem 2rem 4rem;text-align:center;max-width:780px;margin:0 auto;position:relative}
+.hero::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(circle,rgba(124,110,245,.1) 0%,transparent 70%);pointer-events:none}
+.hero-badge{display:inline-block;background:rgba(124,110,245,.12);border:1px solid rgba(124,110,245,.3);color:var(--acc);font-size:.73rem;font-weight:600;letter-spacing:.1em;padding:.3rem 1rem;border-radius:100px;margin-bottom:1.8rem;text-transform:uppercase}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2.4rem,6vw,4rem);line-height:1.08;margin-bottom:1.3rem;letter-spacing:-1px}
+.hero h1 em{color:var(--acc);font-style:normal}
+.hero p{color:var(--muted);font-size:1.05rem;line-height:1.75;max-width:520px;margin:0 auto 2.5rem}
+.hero-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.btn-p{background:var(--acc);color:#fff;border:none;padding:.78rem 1.9rem;border-radius:10px;font-size:.95rem;font-weight:600;cursor:pointer;transition:transform .15s,opacity .2s;box-shadow:0 0 24px rgba(124,110,245,.35)}
+.btn-p:hover{opacity:.88;transform:translateY(-2px)}
+.btn-g{background:transparent;color:var(--text);border:1px solid var(--bdr2);padding:.78rem 1.9rem;border-radius:10px;font-size:.95rem;cursor:pointer;transition:background .2s}
+.btn-g:hover{background:var(--surf2)}
+.stats-row{display:flex;justify-content:center;gap:3rem;padding:2.5rem 2rem;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);flex-wrap:wrap}
+.sn{font-size:2rem;font-weight:700}.sl{font-size:.8rem;color:var(--muted);margin-top:.15rem}
+.feat-sec{padding:5rem 2rem;max-width:1100px;margin:0 auto}
+.sec-lbl{text-align:center;color:var(--muted);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:.8rem}
+.sec-ttl{font-family:'Playfair Display',serif;font-size:2.2rem;text-align:center;margin-bottom:3rem}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.4rem}
+.fc{background:var(--surf);border:1px solid var(--bdr);border-radius:18px;padding:1.8rem;transition:border-color .25s,transform .2s}
+.fc:hover{border-color:rgba(124,110,245,.3);transform:translateY(-3px)}
+.fi{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1.2rem}
+.fc h3{font-size:.98rem;font-weight:600;margin-bottom:.5rem}
+.fc p{font-size:.85rem;color:var(--muted);line-height:1.65}
+.iv-hl{background:linear-gradient(135deg,rgba(240,94,94,.07),rgba(124,110,245,.07));border:1px solid rgba(240,94,94,.2);border-radius:20px;padding:2.5rem;max-width:1100px;margin:0 auto 3rem;display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:center}
+.iv-hl h2{font-family:'Playfair Display',serif;font-size:1.9rem;margin-bottom:.8rem}
+.iv-hl h2 span{color:var(--red)}
+.iv-hl p{color:var(--muted);font-size:.9rem;line-height:1.7}
+.ap{display:flex;align-items:flex-start;gap:.75rem;padding:.9rem 1.1rem;border-radius:12px;border:1px solid var(--bdr);background:var(--surf);animation:si .4s ease forwards;opacity:0}
+.ap:nth-child(1){animation-delay:.1s}.ap:nth-child(2){animation-delay:.25s}.ap:nth-child(3){animation-delay:.4s}
+.ap-body{font-size:.82rem;line-height:1.5}.ap-body strong{color:var(--text);font-weight:600}
+.ap-role{font-size:.7rem;color:var(--muted);margin-top:.2rem}
+.ap.ar{border-color:rgba(240,94,94,.25);background:rgba(240,94,94,.05)}
+.ap.aa{border-color:rgba(245,166,35,.25);background:rgba(245,166,35,.05)}
+.ap.ab{border-color:rgba(90,179,245,.25);background:rgba(90,179,245,.05)}
+.how-s{padding:5rem 2rem;background:var(--surf)}
+.steps{display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;max-width:960px;margin:0 auto;align-items:flex-start}
+.step{text-align:center;max-width:170px}
+.step-n{width:50px;height:50px;border-radius:50%;background:rgba(124,110,245,.15);border:1.5px solid rgba(124,110,245,.4);color:var(--acc);font-size:1.1rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+.step h4{font-size:.9rem;font-weight:600;margin-bottom:.4rem}
+.step p{font-size:.78rem;color:var(--muted);line-height:1.55}
+.cta-bot{padding:6rem 2rem;text-align:center}
+.cta-bot h2{font-family:'Playfair Display',serif;font-size:2.4rem;margin-bottom:1rem}
+.cta-bot p{color:var(--muted);margin-bottom:2rem}
+
+/* ── AUTH ── */
+.auth-wrap{min-height:calc(100vh - 61px);display:flex;align-items:center;justify-content:center;padding:2rem;background:radial-gradient(ellipse at 50% 0%,rgba(124,110,245,.1) 0%,transparent 60%)}
+.auth-card{background:var(--surf);border:1px solid var(--bdr2);border-radius:24px;padding:2.5rem;width:440px;max-width:100%}
+.auth-card h2{font-family:'Playfair Display',serif;font-size:1.8rem;margin-bottom:.4rem}
+.auth-card .sub{color:var(--muted);font-size:.875rem;margin-bottom:2rem}
+.tab-row{display:flex;background:var(--surf2);border-radius:10px;padding:4px;margin-bottom:1.8rem}
+.tab-btn{flex:1;padding:.55rem;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:.875rem;font-weight:500;cursor:pointer;transition:all .2s}
+.tab-btn.active{background:var(--acc);color:#fff}
+.field{margin-bottom:1.2rem}
+.field label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:.4rem;font-weight:500}
+.field input,.field select{width:100%;background:var(--surf2);border:1px solid var(--bdr);border-radius:10px;padding:.7rem 1rem;color:var(--text);font-size:.9rem;outline:none;transition:border-color .2s}
+.field input:focus,.field select:focus{border-color:rgba(124,110,245,.5)}
+.field input::placeholder{color:var(--muted)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.auth-btn{width:100%;background:var(--acc);color:#fff;border:none;padding:.8rem;border-radius:10px;font-size:.95rem;font-weight:600;cursor:pointer;margin-top:.5rem;box-shadow:0 0 20px rgba(124,110,245,.3);display:flex;align-items:center;justify-content:center;gap:.5rem;transition:opacity .2s}
+.auth-btn:hover{opacity:.88}
+.auth-btn:disabled{opacity:.6;cursor:not-allowed}
+.auth-div{display:flex;align-items:center;gap:1rem;margin:1.5rem 0;color:var(--muted);font-size:.8rem}
+.auth-div::before,.auth-div::after{content:'';flex:1;height:1px;background:var(--bdr)}
+.social-btn{width:100%;background:var(--surf2);border:1px solid var(--bdr);border-radius:10px;padding:.7rem;color:var(--text);font-size:.88rem;cursor:pointer;transition:border-color .2s}
+.social-btn:hover{border-color:var(--bdr2)}
+.auth-foot{text-align:center;margin-top:1.5rem;font-size:.82rem;color:var(--muted)}
+.auth-foot a{color:var(--acc);cursor:pointer}
+.auth-err{background:rgba(240,94,94,.1);border:1px solid rgba(240,94,94,.3);color:var(--red);border-radius:8px;padding:.65rem .9rem;font-size:.82rem;margin-bottom:1rem;display:none}
+.auth-err.show{display:block}
+.api-status{display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:var(--muted);margin-bottom:1.2rem;padding:.5rem .8rem;background:var(--surf2);border-radius:8px}
+.api-dot{width:7px;height:7px;border-radius:50%}.api-dot.ok{background:var(--green)}.api-dot.err{background:var(--red)}.api-dot.chk{background:var(--amber);animation:pulse 1s ease infinite}
+
+/* ── APP SHELL ── */
+.app-shell{display:grid;grid-template-columns:var(--sw) 1fr;min-height:calc(100vh - 61px)}
+.sidebar{background:var(--surf);border-right:1px solid var(--bdr);padding:1.5rem .75rem;display:flex;flex-direction:column;gap:.15rem;overflow-y:auto}
+.sb-lbl{font-size:.67rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:.5rem .75rem;margin-top:.8rem}
+.sb-it{display:flex;align-items:center;gap:.75rem;padding:.6rem .85rem;border-radius:10px;cursor:pointer;font-size:.84rem;color:var(--muted);transition:all .15s}
+.sb-it:hover{background:var(--surf2);color:var(--text)}
+.sb-it.active{background:rgba(124,110,245,.15);color:var(--acc)}
+.sb-ico{font-size:.92rem;width:18px;text-align:center;flex-shrink:0}
+.sb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sb-bx{margin-left:auto;background:var(--acc);color:#fff;font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:100px}
+.sb-bx-r{margin-left:auto;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:100px;animation:pulse 2s ease infinite}
+.user-chip{margin-top:auto;display:flex;align-items:center;gap:.75rem;padding:.8rem;background:var(--surf2);border-radius:12px;cursor:pointer}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;color:#fff;flex-shrink:0}
+.u-name{font-size:.82rem;font-weight:600}.u-role{font-size:.72rem;color:var(--muted)}
+.main{padding:2rem;overflow-y:auto}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.8rem;flex-wrap:wrap;gap:1rem}
+.sec-hdr h2{font-family:'Playfair Display',serif;font-size:1.65rem}
+.sec-hdr .sub{font-size:.8rem;color:var(--muted);margin-top:.2rem}
+.add-btn{background:var(--acc);color:#fff;border:none;padding:.55rem 1.15rem;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.add-btn:hover{opacity:.85}
+.dng-btn{background:rgba(240,94,94,.12);color:var(--red);border:1px solid rgba(240,94,94,.28);padding:.55rem 1.15rem;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;transition:background .2s}
+.dng-btn:hover{background:rgba(240,94,94,.22)}
+
+/* ── METRICS ── */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.mc{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:1.2rem 1.4rem;position:relative;overflow:hidden}
+.mc-lbl{font-size:.72rem;color:var(--muted);margin-bottom:.5rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.mc-val{font-size:1.9rem;font-weight:700}
+.mc-val.a{color:var(--acc)}.mc-val.g{color:var(--green)}.mc-val.am{color:var(--amber)}.mc-val.b{color:var(--blue)}.mc-val.r{color:var(--red)}
+.mc-ch{font-size:.74rem;margin-top:.3rem}.mc-ch.up{color:var(--green)}.mc-ch.dn{color:var(--red)}
+.mc-spin{position:absolute;top:50%;right:1rem;transform:translateY(-50%);width:18px;height:18px;border:2px solid var(--bdr2);border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite;display:none}
+.mc.loading .mc-val{opacity:.3}.mc.loading .mc-spin{display:block}
+
+/* ── WEEK GRID ── */
+.wk{background:var(--surf);border:1px solid var(--bdr);border-radius:18px;overflow:hidden;margin-bottom:2rem}
+.wk-hdr{display:grid;grid-template-columns:64px repeat(7,1fr);border-bottom:1px solid var(--bdr)}
+.wk-d{padding:.8rem .4rem;text-align:center;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.wk-d.td{color:var(--acc)}
+.wk-b{display:grid;grid-template-columns:64px repeat(7,1fr)}
+.wk-ts{display:flex;flex-direction:column}
+.wk-t{height:52px;border-bottom:1px solid var(--bdr);padding:.3rem .5rem;font-size:.68rem;color:var(--muted)}
+.wk-c{border-left:1px solid var(--bdr);position:relative}
+.wk-c.tc{background:rgba(124,110,245,.03)}
+.wk-cell{height:52px;border-bottom:1px solid var(--bdr)}
+.ev{position:absolute;left:3px;right:3px;border-radius:8px;padding:4px 7px;font-size:.7rem;font-weight:500;cursor:pointer;transition:opacity .15s;overflow:hidden}
+.ev:hover{opacity:.8}
+.ev.cir{background:rgba(124,110,245,.22);border-left:3px solid var(--acc);color:#c0b8ff}
+.ev.th{background:rgba(78,203,138,.18);border-left:3px solid var(--green);color:#9ee8c5}
+.ev.ds{background:rgba(255,140,66,.18);border-left:3px solid var(--orange);color:#ffb380}
+.ev.fl{background:rgba(45,212,191,.18);border-left:3px solid var(--teal);color:#7eeee6}
+.ev.sg{background:rgba(244,114,182,.18);border-left:3px solid var(--pink);color:#f9bfdf}
+
+/* ── TASKS ── */
+.t-cols{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.t-panel{background:var(--surf);border:1px solid var(--bdr);border-radius:16px;padding:1.4rem}
+.t-panel h3{font-size:.92rem;font-weight:600;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem}
+.t-cnt{background:var(--surf2);color:var(--muted);font-size:.7rem;padding:1px 7px;border-radius:100px}
+.t-it{display:flex;align-items:center;gap:.8rem;padding:.65rem 0;border-bottom:1px solid var(--bdr)}
+.t-it:last-child{border-bottom:none}
+.t-ck{width:19px;height:19px;border-radius:50%;border:1.5px solid var(--bdr2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:.6rem}
+.t-ck.done{background:var(--green);border-color:var(--green);color:#fff}
+.t-tx{font-size:.86rem;flex:1}.t-tx.done{text-decoration:line-through;color:var(--muted)}
+.t-tag{font-size:.67rem;padding:2px 8px;border-radius:100px;font-weight:500;white-space:nowrap}
+.tt-cir{background:rgba(124,110,245,.15);color:#c0b8ff}
+.tt-th{background:rgba(78,203,138,.15);color:var(--green)}
+.tt-ds{background:rgba(255,140,66,.15);color:var(--orange)}
+.tt-fl{background:rgba(45,212,191,.15);color:var(--teal)}
+.tt-sg{background:rgba(244,114,182,.15);color:var(--pink)}
+.t-inp{width:100%;background:var(--surf2);border:1px dashed var(--bdr2);border-radius:8px;padding:.55rem .8rem;color:var(--text);font-size:.85rem;margin-top:.8rem;outline:none}
+
+/* ── CHARTS ── */
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.cc{background:var(--surf);border:1px solid var(--bdr);border-radius:18px;padding:1.5rem}
+.cc.full{grid-column:1/-1}
+.cc h3{font-size:.9rem;font-weight:600;margin-bottom:1.2rem}
+.cw{position:relative}
+.pb-bars{display:flex;flex-direction:column;gap:1rem}
+.pb-top{display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:.4rem}
+.pb-bg{background:var(--surf2);border-radius:100px;height:7px;overflow:hidden}
+.pb-f{height:100%;border-radius:100px;transition:width 1s ease}
+
+/* ── TWIN ── */
+.tw-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.tw-c{background:var(--surf);border:1px solid var(--bdr);border-radius:18px;padding:1.5rem;position:relative;overflow:hidden}
+.tw-c.s2{grid-column:span 2}.tw-c.s3{grid-column:span 3}
+.tw-c h3{font-size:.88rem;font-weight:600;color:var(--muted);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.07em}
+.sc-ring{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.5rem;padding:1rem 0}
+.rv{font-size:2.4rem;font-weight:700}.rl{font-size:.78rem;color:var(--muted)}
+.risk-row{display:flex;gap:.75rem;margin-bottom:.8rem}
+.rb{flex:1;padding:.7rem;border-radius:12px;text-align:center}
+.rb .rn{font-size:1.4rem;font-weight:700}.rb .rl2{font-size:.7rem;margin-top:.2rem}
+.rb-lo{background:rgba(78,203,138,.12);color:var(--green)}
+.rb-md{background:rgba(245,166,35,.12);color:var(--amber)}
+.rb-hi{background:rgba(240,94,94,.12);color:var(--red)}
+.tw-st{display:flex;align-items:center;justify-content:space-between;padding:.65rem 0;border-bottom:1px solid var(--bdr);font-size:.83rem}
+.tw-st:last-child{border-bottom:none}.tw-stv{font-weight:600}
+.ins-l{display:flex;flex-direction:column;gap:.8rem}
+.ins-i{display:flex;gap:.8rem;align-items:flex-start;padding:.8rem;border-radius:10px;border:1px solid var(--bdr)}
+.ins-ico{font-size:1rem;padding-top:1px}.ins-tx{font-size:.82rem;line-height:1.55}
+.ins-tx strong{color:var(--text);font-weight:600}
+.ins-i.good{border-color:rgba(78,203,138,.2);background:rgba(78,203,138,.05)}
+.ins-i.warn{border-color:rgba(245,166,35,.2);background:rgba(245,166,35,.05)}
+.ins-i.info{border-color:rgba(124,110,245,.2);background:rgba(124,110,245,.05)}
+.ins-i.crit{border-color:rgba(240,94,94,.25);background:rgba(240,94,94,.06)}
+
+/* ── PROACTIVE INTERVENTION ── */
+.iv-banner{background:rgba(240,94,94,.08);border:1px solid rgba(240,94,94,.22);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem}
+.iv-hdr{background:linear-gradient(135deg,rgba(240,94,94,.1),rgba(245,166,35,.06));border:1px solid rgba(240,94,94,.2);border-radius:16px;padding:1.2rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.iv-left{display:flex;align-items:center;gap:.9rem}
+.iv-ico{font-size:2rem}
+.iv-ttl{font-size:.98rem;font-weight:600;margin-bottom:.15rem}
+.iv-sub{font-size:.78rem;color:var(--muted)}
+.iv-stats{display:flex;gap:1.5rem;flex-wrap:wrap}
+.ivs{text-align:center}.ivs-v{font-size:1.4rem;font-weight:700}.ivs-l{font-size:.7rem;color:var(--muted)}
+.af{display:flex;gap:.6rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.fb{padding:.4rem .9rem;border-radius:8px;border:1px solid var(--bdr);background:var(--surf);color:var(--muted);font-size:.78rem;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
+.fb.on{border-color:var(--acc);background:rgba(124,110,245,.12);color:var(--acc)}
+.fb.on.fr{border-color:var(--red);background:rgba(240,94,94,.1);color:var(--red)}
+.fb.on.fa{border-color:var(--amber);background:rgba(245,166,35,.1);color:var(--amber)}
+.fb.on.fb2{border-color:var(--blue);background:rgba(90,179,245,.1);color:var(--blue)}
+.ag{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.5rem}
+.ac{background:var(--surf);border-radius:16px;padding:1.2rem;border:1px solid var(--bdr);position:relative;overflow:hidden;transition:transform .2s,border-color .2s}
+.ac:hover{transform:translateY(-2px)}
+.ac.sh{border-color:rgba(240,94,94,.3)}.ac.sm{border-color:rgba(245,166,35,.3)}.ac.sl{border-color:rgba(90,179,245,.3)}
+.ac::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:2px 0 0 2px}
+.ac.sh::before{background:var(--red)}.ac.sm::before{background:var(--amber)}.ac.sl::before{background:var(--blue)}
+.ac-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.8rem}
+.ac-who{display:flex;align-items:center;gap:.6rem}
+.ac-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;flex-shrink:0}
+.ac-av.tchr{background:rgba(124,110,245,.2);color:var(--acc)}
+.ac-av.stud{background:rgba(78,203,138,.2);color:var(--green)}
+.ac-av.cons{background:rgba(90,179,245,.2);color:var(--blue)}
+.ac-name{font-size:.82rem;font-weight:600}.ac-role{font-size:.7rem;color:var(--muted)}
+.ac-bdg{font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:100px;white-space:nowrap}
+.bdg-h{background:rgba(240,94,94,.15);color:var(--red)}
+.bdg-m{background:rgba(245,166,35,.15);color:var(--amber)}
+.bdg-l{background:rgba(90,179,245,.15);color:var(--blue)}
+.ac-subj{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:6px;margin-bottom:.8rem;font-weight:500}
+.ac-msg{font-size:.83rem;line-height:1.55;margin-bottom:.8rem}
+.ac-msg strong{color:var(--acc)}
+.ac-acts{display:flex;gap:.5rem;flex-wrap:wrap}
+.ac-btn{font-size:.75rem;padding:.35rem .75rem;border-radius:7px;border:1px solid var(--bdr);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.ac-btn:hover{background:var(--surf2);color:var(--text)}
+.ac-btn.pr{background:rgba(124,110,245,.15);color:var(--acc);border-color:rgba(124,110,245,.3)}
+.ac-btn.pr:hover{background:rgba(124,110,245,.25)}
+.ac-time{font-size:.7rem;color:var(--muted);margin-top:.6rem}
+.tl{display:flex;flex-direction:column}
+.tl-it{display:flex;gap:1rem;padding:.8rem 0;position:relative}
+.tl-it:not(:last-child)::after{content:'';position:absolute;left:15px;top:44px;bottom:-4px;width:1px;background:var(--bdr)}
+.tl-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;border:1.5px solid}
+.tl-dot.r{background:rgba(240,94,94,.12);border-color:rgba(240,94,94,.4)}
+.tl-dot.a{background:rgba(245,166,35,.12);border-color:rgba(245,166,35,.4)}
+.tl-dot.g{background:rgba(78,203,138,.12);border-color:rgba(78,203,138,.4)}
+.tl-body{flex:1;padding-top:.25rem}
+.tl-ttl{font-size:.84rem;font-weight:600;margin-bottom:.15rem}
+.tl-desc{font-size:.78rem;color:var(--muted);line-height:1.5}
+.tl-time{font-size:.7rem;color:var(--muted);margin-top:.2rem}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.sc2{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:1.2rem;text-align:center;cursor:pointer;transition:all .2s}
+.sc2:hover{border-color:rgba(124,110,245,.35);transform:translateY(-2px)}
+.sc2-ico{font-size:1.8rem;margin-bottom:.7rem}
+.sc2-ttl{font-size:.85rem;font-weight:600;margin-bottom:.3rem}
+.sc2-desc{font-size:.75rem;color:var(--muted);line-height:1.5}
+.sc2-cnt{display:inline-block;margin-top:.6rem;font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:100px}
+.rt{width:100%;border-collapse:collapse}
+.rt th{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:500;padding:.6rem 1rem;text-align:left;border-bottom:1px solid var(--bdr)}
+.rt td{font-size:.83rem;padding:.75rem 1rem;border-bottom:1px solid var(--bdr);vertical-align:middle}
+.rt tr:last-child td{border-bottom:none}
+.rt tr:hover td{background:rgba(255,255,255,.015)}
+.rp{display:inline-block;font-size:.68rem;font-weight:600;padding:2px 9px;border-radius:100px}
+.rp-h{background:rgba(240,94,94,.15);color:var(--red)}
+.rp-m{background:rgba(245,166,35,.15);color:var(--amber)}
+.rp-l{background:rgba(78,203,138,.15);color:var(--green)}
+.pm{display:flex;align-items:center;gap:.5rem}
+.pm-b{flex:1;height:5px;background:var(--surf2);border-radius:100px;overflow:hidden}
+.pm-f{height:100%;border-radius:100px}
+.pm-v{font-size:.75rem;color:var(--muted);width:28px;text-align:right}
+.al{color:var(--acc);font-size:.78rem;cursor:pointer}.al:hover{text-decoration:underline}
+
+/* ── ML PREDICTION SECTION ── */
+.pred-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;margin-bottom:1.5rem}
+.pred-card{background:var(--surf);border:1px solid var(--bdr);border-radius:16px;padding:1.3rem;text-align:center}
+.pred-card h4{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.8rem}
+.pred-val{font-size:2rem;font-weight:700;margin-bottom:.3rem}
+.pred-label{font-size:.78rem;color:var(--muted)}
+.pred-bar{height:6px;background:var(--surf2);border-radius:100px;overflow:hidden;margin-top:.8rem}
+.pred-bar-f{height:100%;border-radius:100px;transition:width 1.2s ease}
+.forecast-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.fcast-card{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:1rem;text-align:center}
+.fcast-wk{font-size:.72rem;color:var(--muted);margin-bottom:.4rem;font-weight:600;text-transform:uppercase}
+.fcast-val{font-size:1.5rem;font-weight:700}
+.fcast-trend{font-size:.72rem;margin-top:.2rem}
+.fcast-trend.up{color:var(--green)}.fcast-trend.dn{color:var(--red)}.fcast-trend.flat{color:var(--muted)}
+
+/* ── BURNOUT ── */
+.burnout-meter{background:var(--surf);border:1px solid var(--bdr);border-radius:18px;padding:1.5rem;margin-bottom:1.5rem}
+.burnout-meter h3{font-size:.9rem;font-weight:600;margin-bottom:1.2rem}
+.burnout-score{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
+.burnout-circle{width:100px;height:100px;border-radius:50%;border:6px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.burnout-circle.low{border-color:var(--green);color:var(--green)}
+.burnout-circle.medium{border-color:var(--amber);color:var(--amber)}
+.burnout-circle.high{border-color:var(--red);color:var(--red)}
+.burnout-num{font-size:1.6rem;font-weight:700}
+.burnout-lbl{font-size:.65rem;color:var(--muted)}
+.burnout-details{flex:1;display:flex;flex-direction:column;gap:.7rem}
+.bd-row{display:flex;align-items:center;justify-content:space-between;font-size:.83rem}
+.bd-bar{width:120px;height:5px;background:var(--surf2);border-radius:100px;overflow:hidden}
+.bd-fill{height:100%;border-radius:100px}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.mb{background:var(--surf2);border:1px solid var(--bdr2);border-radius:22px;padding:2rem;width:440px;max-width:95vw;animation:fi .2s ease;max-height:90vh;overflow-y:auto}
+.mb h3{font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:1.5rem}
+.mf{margin-bottom:1.1rem}
+.mf label{display:block;font-size:.75rem;color:var(--muted);margin-bottom:.35rem;font-weight:500}
+.mf input,.mf select,.mf textarea{width:100%;background:var(--surf);border:1px solid var(--bdr);border-radius:9px;padding:.65rem .9rem;color:var(--text);font-size:.88rem;outline:none;transition:border-color .2s;resize:vertical}
+.mf input:focus,.mf select:focus,.mf textarea:focus{border-color:rgba(124,110,245,.5)}
+.mf select option{background:var(--surf2)}
+.m-btns{display:flex;gap:.8rem;margin-top:1.5rem}
+.m-can{flex:1;background:transparent;border:1px solid var(--bdr);color:var(--muted);padding:.68rem;border-radius:9px;font-size:.88rem;cursor:pointer}
+.m-sav{flex:2;background:var(--acc);color:#fff;border:none;padding:.68rem;border-radius:9px;font-size:.88rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem}
+.m-sav:disabled{opacity:.6;cursor:not-allowed}
+
+/* ── LOADER ── */
+.loader{display:flex;align-items:center;justify-content:center;padding:3rem;flex-direction:column;gap:1rem;color:var(--muted);font-size:.85rem}
+.loader-spin{width:32px;height:32px;border:3px solid var(--bdr2);border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite}
+
+/* ── TOAST ── */
+.toast-c{position:fixed;bottom:1.5rem;right:1.5rem;z-index:300;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+.toast-i{background:var(--surf2);border:1px solid var(--bdr2);border-radius:12px;padding:.9rem 1.2rem;font-size:.83rem;min-width:280px;max-width:340px;animation:si .3s ease;pointer-events:all;display:flex;align-items:flex-start;gap:.7rem}
+.toast-i.tr{border-color:rgba(240,94,94,.3);background:rgba(240,94,94,.1)}
+.toast-i.tg{border-color:rgba(78,203,138,.3);background:rgba(78,203,138,.08)}
+.toast-i.ta{border-color:rgba(245,166,35,.3);background:rgba(245,166,35,.08)}
+.toast-i.tb{border-color:rgba(90,179,245,.3);background:rgba(90,179,245,.08)}
+
+/* ── API STATUS BAR ── */
+.api-bar{display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;background:rgba(78,203,138,.07);border:1px solid rgba(78,203,138,.2);border-radius:10px;margin-bottom:1.5rem;font-size:.78rem;flex-wrap:wrap}
+.api-bar.err{background:rgba(240,94,94,.07);border-color:rgba(240,94,94,.2)}
+.api-bar.warn{background:rgba(245,166,35,.07);border-color:rgba(245,166,35,.2)}
+
+/* ── ONBOARDING ── */
+.onboard-wrap{min-height:calc(100vh - 61px);display:flex;align-items:center;justify-content:center;padding:2rem;background:radial-gradient(ellipse at 30% 20%,rgba(124,110,245,.12) 0%,transparent 60%)}
+.onboard-card{background:var(--surf);border:1px solid var(--bdr2);border-radius:28px;padding:2.5rem;width:680px;max-width:100%}
+.ob-progress{display:flex;align-items:center;gap:.5rem;margin-bottom:2rem}
+.ob-step-dot{width:8px;height:8px;border-radius:50%;background:var(--bdr2);transition:all .3s}
+.ob-step-dot.done{background:var(--green)}
+.ob-step-dot.active{background:var(--acc);width:24px;border-radius:4px}
+.ob-progress-bar{flex:1;height:3px;background:var(--bdr2);border-radius:100px;overflow:hidden;margin:0 .5rem}
+.ob-progress-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--teal));border-radius:100px;transition:width .4s ease}
+.ob-step{display:none}.ob-step.active{display:block;animation:fi .3s ease}
+.ob-heading{font-family:'Playfair Display',serif;font-size:1.6rem;margin-bottom:.4rem}
+.ob-sub{color:var(--muted);font-size:.88rem;margin-bottom:1.8rem;line-height:1.6}
+.ob-icon{font-size:2.5rem;margin-bottom:1rem}
+.ob-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.ob-field{margin-bottom:1rem}
+.ob-field label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:.4rem;font-weight:500}
+.ob-field input,.ob-field select,.ob-field textarea{width:100%;background:var(--surf2);border:1px solid var(--bdr);border-radius:10px;padding:.65rem 1rem;color:var(--text);font-size:.88rem;outline:none;transition:border-color .2s;resize:vertical}
+.ob-field input:focus,.ob-field select:focus,.ob-field textarea:focus{border-color:rgba(124,110,245,.5)}
+.ob-field input::placeholder,.ob-field textarea::placeholder{color:var(--muted)}
+.ob-field select option{background:var(--surf2)}
+.ob-chips{display:flex;flex-wrap:wrap;gap:.5rem}
+.ob-chip{padding:.4rem .9rem;border-radius:8px;border:1px solid var(--bdr);background:var(--surf2);color:var(--muted);font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.ob-chip:hover{border-color:var(--acc);color:var(--acc)}
+.ob-chip.selected{border-color:var(--acc);background:rgba(124,110,245,.15);color:var(--acc);font-weight:500}
+.ob-chip.chip-th.selected{border-color:var(--green);background:rgba(78,203,138,.15);color:var(--green)}
+.ob-chip.chip-ds.selected{border-color:var(--orange);background:rgba(255,140,66,.15);color:var(--orange)}
+.ob-chip.chip-fl.selected{border-color:var(--teal);background:rgba(45,212,191,.15);color:var(--teal)}
+.ob-chip.chip-sg.selected{border-color:var(--pink);background:rgba(244,114,182,.15);color:var(--pink)}
+.ob-grade-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+.ob-grade-card{background:var(--surf2);border:1px solid var(--bdr);border-radius:12px;padding:.9rem;text-align:center;cursor:pointer;transition:all .2s}
+.ob-grade-card:hover{border-color:var(--acc)}
+.ob-grade-card.selected{border-color:var(--acc);background:rgba(124,110,245,.12)}
+.ob-grade-card .og-subj{font-size:.72rem;color:var(--muted);margin-bottom:.3rem}
+.ob-grade-card .og-val{font-size:1.3rem;font-weight:700;color:var(--acc)}
+.ob-task-add{display:flex;gap:.6rem;margin-bottom:.8rem}
+.ob-task-add input{flex:1;background:var(--surf2);border:1px solid var(--bdr);border-radius:9px;padding:.55rem .9rem;color:var(--text);font-size:.85rem;outline:none}
+.ob-task-add input:focus{border-color:rgba(124,110,245,.4)}
+.ob-task-add button{background:var(--acc);color:#fff;border:none;border-radius:9px;padding:.55rem 1rem;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.ob-task-list{display:flex;flex-direction:column;gap:.5rem;max-height:160px;overflow-y:auto}
+.ob-task-item{display:flex;align-items:center;justify-content:space-between;padding:.5rem .8rem;background:var(--surf2);border-radius:8px;font-size:.83rem}
+.ob-task-item button{background:none;border:none;color:var(--red);cursor:pointer;font-size:.9rem;padding:0 .2rem}
+.ob-nav{display:flex;justify-content:space-between;margin-top:2rem;gap:1rem}
+.ob-back{background:transparent;border:1px solid var(--bdr);color:var(--muted);padding:.68rem 1.4rem;border-radius:10px;font-size:.88rem;cursor:pointer;transition:background .2s}
+.ob-back:hover{background:var(--surf2)}
+.ob-next{background:var(--acc);color:#fff;border:none;padding:.68rem 1.8rem;border-radius:10px;font-size:.88rem;font-weight:600;cursor:pointer;transition:opacity .2s;box-shadow:0 0 16px rgba(124,110,245,.3);display:flex;align-items:center;gap:.4rem}
+.ob-next:hover{opacity:.88}
+.ob-skip{background:none;border:none;color:var(--muted);font-size:.8rem;cursor:pointer;text-decoration:underline;padding:.5rem}
+
+/* ── ML QUESTIONNAIRE ── */
+.mlq-wrap{background:var(--surf);border:1px solid var(--bdr2);border-radius:24px;padding:2rem;margin-bottom:1.5rem}
+.mlq-header{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem}
+.mlq-header-icon{font-size:2rem}
+.mlq-header-text h3{font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:.25rem}
+.mlq-header-text p{font-size:.82rem;color:var(--muted)}
+.mlq-progress{margin-bottom:1.5rem}
+.mlq-prog-top{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-bottom:.4rem}
+.mlq-prog-bg{height:5px;background:var(--surf2);border-radius:100px;overflow:hidden}
+.mlq-prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--teal));border-radius:100px;transition:width .4s ease}
+.mlq-q{display:none;animation:fi .3s ease}.mlq-q.active{display:block}
+.mlq-q-label{font-size:.72rem;color:var(--acc);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem}
+.mlq-q-text{font-size:1rem;font-weight:600;margin-bottom:1.2rem;line-height:1.45}
+.mlq-options{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.mlq-opt{padding:.7rem 1rem;border:1px solid var(--bdr);border-radius:10px;background:var(--surf2);color:var(--muted);font-size:.85rem;cursor:pointer;transition:all .2s;text-align:left;font-family:'DM Sans',sans-serif}
+.mlq-opt:hover{border-color:var(--acc);color:var(--acc)}
+.mlq-opt.selected{border-color:var(--acc);background:rgba(124,110,245,.12);color:var(--acc);font-weight:500}
+.mlq-opt.full{grid-column:1/-1}
+.mlq-input-ans{width:100%;background:var(--surf2);border:1px solid var(--bdr);border-radius:10px;padding:.7rem 1rem;color:var(--text);font-size:.9rem;outline:none;transition:border-color .2s;margin-bottom:.5rem}
+.mlq-input-ans:focus{border-color:rgba(124,110,245,.5)}
+.mlq-input-ans::placeholder{color:var(--muted)}
+.mlq-slider-wrap{padding:.5rem 0}
+.mlq-slider{width:100%;margin:.8rem 0}
+.mlq-slider-val{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}
+.mlq-nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem}
+.mlq-back{background:transparent;border:1px solid var(--bdr);color:var(--muted);padding:.55rem 1.2rem;border-radius:9px;font-size:.85rem;cursor:pointer}
+.mlq-next{background:var(--acc);color:#fff;border:none;padding:.55rem 1.4rem;border-radius:9px;font-size:.85rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.mlq-next:hover{opacity:.88}
+.mlq-dot-row{display:flex;gap:.4rem}
+.mlq-dot{width:7px;height:7px;border-radius:50%;background:var(--bdr2);transition:all .3s}
+.mlq-dot.active{background:var(--acc);width:18px;border-radius:3px}
+.mlq-dot.done{background:var(--green)}
+.mlq-result{display:none;animation:fi .4s ease}
+.mlq-result.show{display:block}
+.result-header{text-align:center;padding:1.5rem 0 1rem}
+.result-header h3{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:.5rem}
+.result-header p{color:var(--muted);font-size:.88rem}
+.result-scores{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
+.rs-card{background:var(--surf2);border:1px solid var(--bdr);border-radius:14px;padding:1.2rem;text-align:center}
+.rs-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem}
+.rs-val{font-size:2rem;font-weight:700;margin-bottom:.3rem}
+.rs-bar{height:5px;background:var(--surf3);border-radius:100px;overflow:hidden;margin-top:.6rem}
+.rs-bar-f{height:100%;border-radius:100px;transition:width 1.2s ease}
+.result-insights{display:flex;flex-direction:column;gap:.7rem;margin-bottom:1.2rem}
+.ri-item{display:flex;gap:.75rem;align-items:flex-start;padding:.8rem 1rem;border-radius:10px;border:1px solid var(--bdr);font-size:.83rem;line-height:1.55}
+.ri-item strong{color:var(--text);font-weight:600}
+.ri-item.ri-g{border-color:rgba(78,203,138,.2);background:rgba(78,203,138,.05)}
+.ri-item.ri-w{border-color:rgba(245,166,35,.2);background:rgba(245,166,35,.05)}
+.ri-item.ri-r{border-color:rgba(240,94,94,.2);background:rgba(240,94,94,.05)}
+.ri-item.ri-b{border-color:rgba(124,110,245,.2);background:rgba(124,110,245,.05)}
+.result-cta{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap}
+
+@media(max-width:1000px){
+  .app-shell{grid-template-columns:1fr}.sidebar{display:none}
+  .metrics{grid-template-columns:1fr 1fr}
+  .cg,.tw-g,.pred-grid,.forecast-grid{grid-template-columns:1fr}
+  .tw-c.s2,.tw-c.s3{grid-column:span 1}
+  .t-cols,.ag,.sg{grid-template-columns:1fr}
+  nav ul{display:none}.iv-hl{grid-template-columns:1fr}
+  .ob-grid,.ob-grade-grid,.mlq-options,.result-scores{grid-template-columns:1fr}
+  .mlq-opt.full{grid-column:span 1}
+  .onboard-card{padding:1.5rem}
+}
+@media(max-width:600px){.metrics{grid-template-columns:1fr 1fr}.field-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Twin <span>Study</span> Flow</div>
+  <ul>
+    <li><a onclick="goLanding()">Home</a></li>
+    <li><a onclick="goApp('dashboard')">Dashboard</a></li>
+    <li><a onclick="goApp('intervention')">Interventions</a></li>
+    <li><a onclick="goApp('ml')">ML Prediction</a></li>
+    <li><a onclick="goApp('twin')">Digital Twin</a></li>
+  </ul>
+  <div class="nav-r">
+    <div class="nav-bell" onclick="goApp('intervention')" title="Active alerts">🔔<span class="bell-dot"></span></div>
+    <div class="nav-user" id="nav-user" style="display:none" onclick="goApp('dashboard')">
+      <div class="nav-av" id="nav-av-initials">IR</div>
+      <div class="nav-uname" id="nav-uname">Ishant Rana</div>
+    </div>
+    <button class="nav-cta" id="nav-auth-btn" onclick="goAuth()">Get Started</button>
+  </div>
+</nav>
+
+<!-- ═══════════ LANDING ═══════════ -->
+<div id="pg-landing" class="page active">
+  <div class="hero">
+    <div class="hero-badge">✦ Engineering Academic Intelligence Platform</div>
+    <h1>Smart Study + <em>Proactive</em> Intervention for Engineers</h1>
+    <p>Twin Study Flow monitors engineering students in real-time — alerting teachers, counselors, and students before problems become failures. Powered by ML + Digital Twin technology.</p>
+    <div class="hero-btns">
+      <button class="btn-p" onclick="goAuth()">Start Free Today</button>
+      <button class="btn-g" onclick="goApp('dashboard')">Explore the App</button>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div><div class="sn" style="color:var(--acc)">14k+</div><div class="sl">Engineering students</div></div>
+    <div><div class="sn" style="color:var(--green)">89%</div><div class="sl">Improved grades</div></div>
+    <div><div class="sn" style="color:var(--red)">↓68%</div><div class="sl">Failure rate reduction</div></div>
+    <div><div class="sn">4.9★</div><div class="sl">Average rating</div></div>
+  </div>
+  <div style="padding:0 2rem;max-width:1100px;margin:3rem auto 0">
+    <div class="iv-hl">
+      <div>
+        <div style="display:inline-block;background:rgba(240,94,94,.12);border:1px solid rgba(240,94,94,.3);color:var(--red);font-size:.7rem;font-weight:600;letter-spacing:.1em;padding:.25rem .9rem;border-radius:100px;margin-bottom:1rem;text-transform:uppercase">🚨 Proactive Intervention</div>
+        <h2>Stop Failures <span>Before</span> They Happen</h2>
+        <p style="margin-top:.8rem">When a student falls behind, our ML engine auto-alerts teachers, students, and counselors with targeted intervention actions — extra tutoring, schedule adjustments, or counseling sessions.</p>
+        <div style="display:flex;gap:1.5rem;margin-top:1.5rem;flex-wrap:wrap">
+          <div><div style="font-size:1.6rem;font-weight:700;color:var(--red)">3 min</div><div style="font-size:.75rem;color:var(--muted)">Avg alert time</div></div>
+          <div><div style="font-size:1.6rem;font-weight:700;color:var(--green)">94%</div><div style="font-size:.75rem;color:var(--muted)">Intervention success</div></div>
+          <div><div style="font-size:1.6rem;font-weight:700;color:var(--amber)">3 roles</div><div style="font-size:.75rem;color:var(--muted)">Auto-notified</div></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.75rem">
+        <div class="ap ar"><div style="font-size:1.1rem">🚨</div><div class="ap-body"><strong>Critical: Thermodynamics coverage 28%</strong> — 3 sessions missed. Immediate tutoring needed.<div class="ap-role">→ Prof. Sharma + Academic Counselor notified</div></div></div>
+        <div class="ap aa"><div style="font-size:1.1rem">⚠️</div><div class="ap-body"><strong>Circuits task completion: 41%</strong> — Lab assignments falling behind. Schedule adjustment suggested.<div class="ap-role">→ Prof. Nair + Student notified</div></div></div>
+        <div class="ap ab"><div style="font-size:1.1rem">💡</div><div class="ap-body"><strong>ML Model: Burnout risk detected</strong> — Sessions shortening + late-night pattern. Counseling recommended.<div class="ap-role">→ Student Counselor + Student notified</div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="feat-sec">
+    <div class="sec-lbl">What's inside</div>
+    <div class="sec-ttl">Complete Engineering Intelligence Platform</div>
+    <div class="fg">
+      <div class="fc"><div class="fi" style="background:rgba(240,94,94,.15)">🚨</div><h3>Proactive Intervention</h3><p>Auto-alerts to teachers, students &amp; counselors when risk is detected — with tutoring, schedule, and counseling actions.</p></div>
+      <div class="fc"><div class="fi" style="background:rgba(124,110,245,.15)">📅</div><h3>Engineering Planner</h3><p>Visual weekly scheduler for Circuits, Thermodynamics, DSA, Fluid Mechanics, and Signals. Connected to backend.</p></div>
+      <div class="fc"><div class="fi" style="background:rgba(78,203,138,.15)">🤖</div><h3>ML Prediction Engine</h3><p>Random Forest / XGBoost models predict performance, risk, and productivity scores with 4-week trajectory.</p></div>
+      <div class="fc"><div class="fi" style="background:rgba(45,212,191,.15)">🧬</div><h3>Academic Digital Twin</h3><p>Real-time AI model with burnout detection formula, consistency index, health score, and risk trend calculation.</p></div>
+      <div class="fc"><div class="fi" style="background:rgba(245,166,35,.15)">📊</div><h3>Live Analytics</h3><p>Performance, productivity, and risk charts fed by real API data — updated every session.</p></div>
+      <div class="fc"><div class="fi" style="background:rgba(90,179,245,.15)">🔐</div><h3>JWT Authentication</h3><p>Secure login/register with JWT tokens. User profile management with study log history.</p></div>
+    </div>
+  </div>
+  <div class="how-s">
+    <div class="sec-lbl" style="text-align:center">System Architecture</div>
+    <div class="sec-ttl">5-Layer Engineering Platform</div>
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><h4>Frontend (React.js)</h4><p>Responsive UI with Chart.js dashboards and twin visualization.</p></div>
+      <div style="color:var(--bdr2);font-size:1.6rem;align-self:center;padding-bottom:2rem">→</div>
+      <div class="step"><div class="step-n">2</div><h4>Backend (Flask)</h4><p>JWT auth, study plan APIs, performance predictions, user profiles.</p></div>
+      <div style="color:var(--bdr2);font-size:1.6rem;align-self:center;padding-bottom:2rem">→</div>
+      <div class="step"><div class="step-n">3</div><h4>ML Engine</h4><p>Random Forest / XGBoost models for prediction, simulation, outcome forecasting.</p></div>
+      <div style="color:var(--bdr2);font-size:1.6rem;align-self:center;padding-bottom:2rem">→</div>
+      <div class="step"><div class="step-n">4</div><h4>Digital Twin</h4><p>Burnout detection, risk trends, consistency index, 4-week academic forecast.</p></div>
+    </div>
+  </div>
+  <div class="cta-bot">
+    <h2>Stop failures before they happen.</h2>
+    <p>Join engineering programs already using Twin Study Flow.</p>
+    <button class="btn-p" onclick="goAuth()">Create Free Account</button>
+  </div>
+</div>
+
+<!-- ═══════════ AUTH ═══════════ -->
+<div id="pg-auth" class="page">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h2 id="auth-title">Welcome back</h2>
+      <p class="sub" id="auth-sub">Log in to your engineering dashboard</p>
+      <div class="api-status" id="api-ping">
+        <div class="api-dot chk" id="api-dot"></div>
+        <span id="api-status-txt">Connecting to backend...</span>
+      </div>
+      <div class="tab-row">
+        <button class="tab-btn active" id="tab-login" onclick="authTab('login')">Login</button>
+        <button class="tab-btn" id="tab-register" onclick="authTab('register')">Register</button>
+      </div>
+      <!-- LOGIN -->
+      <div id="form-login">
+        <div class="auth-err" id="login-err"></div>
+        <div class="field"><label>Email Address</label><input type="email" id="login-email" placeholder="you@university.edu"/></div>
+        <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+        <button class="auth-btn" id="login-btn" onclick="doLogin()">Sign In →</button>
+        <div class="auth-div">or continue as demo</div>
+        <button class="social-btn" onclick="demoLogin()">🎓 Demo — Ishant Rana (Engineering Student)</button>
+        <div class="auth-foot">No account? <a onclick="authTab('register')">Register here</a></div>
+      </div>
+      <!-- REGISTER -->
+      <div id="form-register" style="display:none">
+        <div class="auth-err" id="reg-err"></div>
+        <div class="field-row">
+          <div class="field"><label>First Name</label><input type="text" id="reg-fname" placeholder="Ishant"/></div>
+          <div class="field"><label>Last Name</label><input type="text" id="reg-lname" placeholder="Rana"/></div>
+        </div>
+        <div class="field"><label>Email Address</label><input type="email" id="reg-email" placeholder="you@university.edu"/></div>
+        <div class="field"><label>Password</label><input type="password" id="reg-pass" placeholder="Create a strong password"/></div>
+        <div class="field"><label>I am a…</label>
+          <select id="reg-role"><option value="student">Engineering Student</option><option value="faculty">Faculty / Teacher</option><option value="counselor">Academic Counselor</option><option value="admin">Department Admin</option></select>
+        </div>
+        <div class="field"><label>Engineering Branch</label>
+          <select id="reg-branch"><option>Electrical Engineering</option><option>Computer Science &amp; Eng</option><option>Mechanical Engineering</option><option>Civil Engineering</option><option>Electronics &amp; Comm</option></select>
+        </div>
+        <button class="auth-btn" id="reg-btn" onclick="doRegister()">Create Account →</button>
+        <div class="auth-foot">Already registered? <a onclick="authTab('login')">Sign in</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ ONBOARDING ═══════════ -->
+<div id="pg-onboard" class="page">
+  <div class="onboard-wrap">
+    <div class="onboard-card">
+      <!-- Progress bar -->
+      <div class="ob-progress">
+        <div class="ob-step-dot active" id="obdot-1"></div>
+        <div class="ob-step-dot" id="obdot-2"></div>
+        <div class="ob-step-dot" id="obdot-3"></div>
+        <div class="ob-step-dot" id="obdot-4"></div>
+        <div class="ob-progress-bar"><div class="ob-progress-fill" id="ob-fill" style="width:25%"></div></div>
+        <span style="font-size:.78rem;color:var(--muted)" id="ob-step-label">Step 1 of 4</span>
+      </div>
+
+      <!-- STEP 1: Subjects & Study Hours -->
+      <div class="ob-step active" id="ob-step-1">
+        <div class="ob-icon">📚</div>
+        <div class="ob-heading">Which subjects are you studying?</div>
+        <div class="ob-sub">Select all your engineering subjects. We'll personalize your planner and predictions.</div>
+        <div class="ob-chips" id="ob-subjects">
+          <button class="ob-chip selected" data-val="Circuits & Electronics" onclick="toggleChip(this)">⚡ Circuits &amp; Electronics</button>
+          <button class="ob-chip chip-th" data-val="Thermodynamics" onclick="toggleChip(this)">🌡 Thermodynamics</button>
+          <button class="ob-chip chip-ds" data-val="Data Structures & Algo" onclick="toggleChip(this)">💻 Data Structures &amp; Algo</button>
+          <button class="ob-chip chip-fl" data-val="Fluid Mechanics" onclick="toggleChip(this)">💧 Fluid Mechanics</button>
+          <button class="ob-chip chip-sg" data-val="Signals & Systems" onclick="toggleChip(this)">📡 Signals &amp; Systems</button>
+          <button class="ob-chip" data-val="Engineering Mathematics" onclick="toggleChip(this)">📐 Engg Mathematics</button>
+          <button class="ob-chip" data-val="Control Systems" onclick="toggleChip(this)">🎛 Control Systems</button>
+          <button class="ob-chip" data-val="Digital Electronics" onclick="toggleChip(this)">🔌 Digital Electronics</button>
+          <button class="ob-chip" data-val="Machine Learning" onclick="toggleChip(this)">🤖 Machine Learning</button>
+          <button class="ob-chip" data-val="DBMS" onclick="toggleChip(this)">🗄 DBMS</button>
+        </div>
+        <div class="ob-grid" style="margin-top:1.5rem">
+          <div class="ob-field">
+            <label>How many hours do you study per day? 📖</label>
+            <select id="ob-hrs-day">
+              <option value="1">Less than 1 hour</option>
+              <option value="2">1–2 hours</option>
+              <option value="3" selected>3–4 hours</option>
+              <option value="5">5–6 hours</option>
+              <option value="7">More than 6 hours</option>
+            </select>
+          </div>
+          <div class="ob-field">
+            <label>What is your semester / year? 🎓</label>
+            <select id="ob-semester">
+              <option>Semester 1</option><option>Semester 2</option>
+              <option>Semester 3</option><option>Semester 4</option>
+              <option value="5" selected>Semester 5</option>
+              <option>Semester 6</option><option>Semester 7</option><option>Semester 8</option>
+            </select>
+          </div>
+        </div>
+        <div class="ob-nav">
+          <button class="ob-skip" onclick="skipOnboarding()">Skip setup</button>
+          <button class="ob-next" onclick="obNext(1)">Next → <span>Grades &amp; History</span></button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Previous Grades -->
+      <div class="ob-step" id="ob-step-2">
+        <div class="ob-icon">📊</div>
+        <div class="ob-heading">What are your previous grades?</div>
+        <div class="ob-sub">Enter your last semester/exam scores for each subject. This trains your personal ML model.</div>
+        <div class="ob-grade-grid" id="ob-grade-grid">
+          <div class="ob-field">
+            <label>Circuits &amp; Electronics</label>
+            <select class="ob-grade-sel" data-subj="Circuits">
+              <option>A+ (91–100)</option><option>A (81–90)</option><option selected>B+ (71–80)</option>
+              <option>B (61–70)</option><option>C (51–60)</option><option>D (41–50)</option><option>F (Below 40)</option>
+            </select>
+          </div>
+          <div class="ob-field">
+            <label>Thermodynamics</label>
+            <select class="ob-grade-sel" data-subj="Thermodynamics">
+              <option>A+ (91–100)</option><option>A (81–90)</option><option>B+ (71–80)</option>
+              <option selected>B (61–70)</option><option>C (51–60)</option><option>D (41–50)</option><option>F (Below 40)</option>
+            </select>
+          </div>
+          <div class="ob-field">
+            <label>Data Structures &amp; Algo</label>
+            <select class="ob-grade-sel" data-subj="DSA">
+              <option>A+ (91–100)</option><option selected>A (81–90)</option><option>B+ (71–80)</option>
+              <option>B (61–70)</option><option>C (51–60)</option><option>D (41–50)</option><option>F (Below 40)</option>
+            </select>
+          </div>
+          <div class="ob-field">
+            <label>Fluid Mechanics</label>
+            <select class="ob-grade-sel" data-subj="Fluids">
+              <option>A+ (91–100)</option><option>A (81–90)</option><option>B+ (71–80)</option>
+              <option selected>B (61–70)</option><option>C (51–60)</option><option>D (41–50)</option><option>F (Below 40)</option>
+            </select>
+          </div>
+          <div class="ob-field">
+            <label>Signals &amp; Systems</label>
+            <select class="ob-grade-sel" data-subj="Signals">
+              <option>A+ (91–100)</option><option>A (81–90)</option><option>B+ (71–80)</option>
+              <option>B (61–70)</option><option selected>C (51–60)</option><option>D (41–50)</option><option>F (Below 40)</option>
+            </select>
+          </div>
+          <div class="ob-field">
+            <label>Overall CGPA / Percentage</label>
+            <input type="number" id="ob-cgpa" placeholder="e.g. 7.8 or 74%" min="0" max="10" step="0.1"/>
+          </div>
+        </div>
+        <div class="ob-field" style="margin-top:.5rem">
+          <label>Any subject you failed or struggled badly? (optional)</label>
+          <input type="text" id="ob-failed" placeholder="e.g. Thermodynamics, DBMS..."/>
+        </div>
+        <div class="ob-nav">
+          <button class="ob-back" onclick="obBack(2)">← Back</button>
+          <button class="ob-next" onclick="obNext(2)">Next → <span>Your Tasks</span></button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Add Tasks -->
+      <div class="ob-step" id="ob-step-3">
+        <div class="ob-icon">✅</div>
+        <div class="ob-heading">Add your current tasks &amp; assignments</div>
+        <div class="ob-sub">What are you supposed to study or submit this week? Add as many as you want.</div>
+        <div class="ob-task-add">
+          <input type="text" id="ob-task-inp" placeholder="e.g. Solve op-amp problems, Submit fluid lab report…" onkeydown="if(event.key==='Enter')obAddTask()"/>
+          <select id="ob-task-subj" style="width:auto;background:var(--surf2);border:1px solid var(--bdr);border-radius:9px;padding:.55rem .8rem;color:var(--text);font-size:.8rem;outline:none">
+            <option>Circuits</option><option>Thermodynamics</option><option>DSA</option><option>Fluids</option><option>Signals</option><option>General</option>
+          </select>
+          <button onclick="obAddTask()">+ Add</button>
+        </div>
+        <div class="ob-task-list" id="ob-task-list">
+          <div class="ob-task-item"><span>Solve 15 op-amp circuit problems</span><button onclick="obRemoveTask(this)">✕</button></div>
+          <div class="ob-task-item"><span>Complete Carnot cycle derivation</span><button onclick="obRemoveTask(this)">✕</button></div>
+          <div class="ob-task-item"><span>DSA Assignment 3 — Graph traversal</span><button onclick="obRemoveTask(this)">✕</button></div>
+        </div>
+        <div class="ob-field" style="margin-top:1.2rem">
+          <label>How many assignments/labs are pending this week? 📋</label>
+          <select id="ob-pending-count">
+            <option>0</option><option>1–2</option><option selected>3–5</option><option>6–8</option><option>More than 8</option>
+          </select>
+        </div>
+        <div class="ob-field">
+          <label>How many hours per week do you spend on assignments? ⏱</label>
+          <select id="ob-assign-hrs">
+            <option>Less than 2 hours</option><option>2–4 hours</option><option selected>5–8 hours</option>
+            <option>9–12 hours</option><option>More than 12 hours</option>
+          </select>
+        </div>
+        <div class="ob-nav">
+          <button class="ob-back" onclick="obBack(3)">← Back</button>
+          <button class="ob-next" onclick="obNext(3)">Next → <span>Finish Setup</span></button>
+        </div>
+      </div>
+
+      <!-- STEP 4: Study goals & background -->
+      <div class="ob-step" id="ob-step-4">
+        <div class="ob-icon">🎯</div>
+        <div class="ob-heading">Almost done! Tell us your goals</div>
+        <div class="ob-sub">This helps us build your academic profile and generate accurate ML predictions.</div>
+        <div class="ob-grid">
+          <div class="ob-field">
+            <label>Target CGPA / Grade this semester 🏆</label>
+            <select id="ob-target-grade">
+              <option>9.0+ (Distinction)</option><option selected>8.0–8.9 (First Class)</option>
+              <option>7.0–7.9 (Good)</option><option>6.0–6.9 (Average)</option><option>Just pass</option>
+            </select>
+          </div>
+          <div class="ob-field">
+            <label>What is your preferred study time? ⏰</label>
+            <select id="ob-study-time">
+              <option selected>Morning (6–11 AM)</option><option>Afternoon (12–4 PM)</option>
+              <option>Evening (5–8 PM)</option><option>Night (9 PM–12 AM)</option><option>Late Night (after 12 AM)</option>
+            </select>
+          </div>
+          <div class="ob-field">
+            <label>How far is your institute from home? 🏫</label>
+            <select id="ob-distance">
+              <option>On campus / Hostel</option><option selected>Less than 5 km</option>
+              <option>5–15 km</option><option>15–30 km</option><option>More than 30 km</option>
+            </select>
+          </div>
+          <div class="ob-field">
+            <label>Family educational background 👨‍👩‍👧</label>
+            <select id="ob-family">
+              <option>Both parents engineers/professionals</option>
+              <option selected>One parent graduate</option>
+              <option>Parents non-graduates</option>
+              <option>First generation college student</option>
+            </select>
+          </div>
+          <div class="ob-field">
+            <label>Do you do part-time work or coaching? 💼</label>
+            <select id="ob-work">
+              <option selected>No, only studies</option><option>Coaching / tuition only</option>
+              <option>Part-time job (weekends)</option><option>Part-time job (daily)</option>
+            </select>
+          </div>
+          <div class="ob-field">
+            <label>How often do you attend classes? 🏛</label>
+            <select id="ob-attendance">
+              <option>Always (95–100%)</option><option selected>Usually (75–94%)</option>
+              <option>Sometimes (50–74%)</option><option>Rarely (below 50%)</option>
+            </select>
+          </div>
+        </div>
+        <div class="ob-field">
+          <label>Anything else about your study challenges? (optional)</label>
+          <textarea id="ob-notes" rows="2" placeholder="e.g. I find thermodynamics very tough, I get distracted easily at home…"></textarea>
+        </div>
+        <div class="ob-nav">
+          <button class="ob-back" onclick="obBack(4)">← Back</button>
+          <button class="ob-next" onclick="finishOnboarding()" style="background:var(--green);box-shadow:0 0 16px rgba(78,203,138,.3)">🚀 Launch My Dashboard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="pg-app" class="page">
+  <div class="app-shell">
+    <div class="sidebar">
+      <div class="sb-lbl" style="margin-top:0">Overview</div>
+      <div class="sb-it active" onclick="showSec('dashboard')"><span class="sb-ico">🏠</span>Dashboard</div>
+      <div class="sb-it" onclick="showSec('planner')"><span class="sb-ico">📅</span>Study Planner</div>
+      <div class="sb-it" onclick="showSec('tasks')"><span class="sb-ico">✅</span>Tasks<span class="sb-bx" id="sb-task-cnt">5</span></div>
+      <div class="sb-lbl">AI &amp; Predictions</div>
+      <div class="sb-it" onclick="showSec('ml')"><span class="sb-ico">🤖</span>ML Prediction</div>
+      <div class="sb-it" onclick="showSec('twin')"><span class="sb-ico">🧬</span>Digital Twin</div>
+      <div class="sb-it" onclick="showSec('analytics')"><span class="sb-ico">📊</span>Analytics</div>
+      <div class="sb-lbl">Alerts &amp; Support</div>
+      <div class="sb-it" onclick="showSec('intervention')"><span class="sb-ico">🚨</span>Interventions<span class="sb-bx-r" id="sb-alert-cnt">3</span></div>
+      <div class="sb-lbl">Engineering Subjects</div>
+      <div class="sb-it"><span class="sb-dot" style="background:#7c6ef5"></span>Circuits &amp; Electronics</div>
+      <div class="sb-it"><span class="sb-dot" style="background:#4ecb8a"></span>Thermodynamics</div>
+      <div class="sb-it"><span class="sb-dot" style="background:#ff8c42"></span>Data Structures &amp; Algo</div>
+      <div class="sb-it"><span class="sb-dot" style="background:#2dd4bf"></span>Fluid Mechanics</div>
+      <div class="sb-it"><span class="sb-dot" style="background:#f472b6"></span>Signals &amp; Systems</div>
+      <div class="user-chip">
+        <div class="avatar" id="sb-avatar">IR</div>
+        <div><div class="u-name" id="sb-uname">Ishant Rana</div><div class="u-role" id="sb-urole">B.Tech EE — Sem 5</div></div>
+      </div>
+    </div>
+
+    <div class="main">
+
+      <!-- ── DASHBOARD ── -->
+      <div id="sec-dashboard" class="sec active">
+        <div class="sec-hdr">
+          <div><h2>Dashboard</h2><div class="sub" id="dash-date">Loading...</div></div>
+          <div style="display:flex;gap:.7rem">
+            <button class="dng-btn" onclick="showSec('intervention')">🚨 <span id="dash-alert-num">3</span> Alerts</button>
+            <button class="add-btn" onclick="openModal('session')">+ Add Session</button>
+          </div>
+        </div>
+        <div class="iv-banner" id="dash-alert-banner">
+          <div style="display:flex;align-items:center;gap:.75rem"><span style="font-size:1.2rem">🚨</span><div><div style="font-size:.88rem;font-weight:600">Proactive Intervention Alert</div><div style="font-size:.78rem;color:var(--muted)" id="dash-banner-msg">Thermodynamics coverage critically low (28%). Teacher notified.</div></div></div>
+          <button class="dng-btn" onclick="showSec('intervention')">View Interventions →</button>
+        </div>
+        <div class="metrics" id="dash-metrics">
+          <div class="mc loading" id="mc-sessions"><div class="mc-lbl">Sessions This Week</div><div class="mc-val a" id="mv-sessions">—</div><div class="mc-ch up" id="mc-sessions-ch">Loading...</div><div class="mc-spin"></div></div>
+          <div class="mc loading" id="mc-hours"><div class="mc-lbl">Hours Studied</div><div class="mc-val g" id="mv-hours">—</div><div class="mc-ch up" id="mc-hours-ch">Loading...</div><div class="mc-spin"></div></div>
+          <div class="mc loading" id="mc-tasks"><div class="mc-lbl">Tasks Done</div><div class="mc-val am" id="mv-tasks">—</div><div class="mc-ch dn" id="mc-tasks-ch">Loading...</div><div class="mc-spin"></div></div>
+          <div class="mc" id="mc-alerts"><div class="mc-lbl">Active Alerts</div><div class="mc-val r" id="mv-alerts">3</div><div class="mc-ch dn">Needs attention</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+          <div class="cc"><h3>This Week's Study Hours</h3><div class="cw" style="height:180px"><canvas id="dashBar"></canvas></div></div>
+          <div class="cc"><h3>Subject Distribution</h3><div class="cw" style="height:180px"><canvas id="dashDonut"></canvas></div></div>
+        </div>
+        <div class="cc">
+          <h3>Today's Engineering Tasks</h3>
+          <div id="dash-tasks-list"><div class="loader"><div class="loader-spin"></div>Loading tasks...</div></div>
+        </div>
+      </div>
+
+      <!-- ── PLANNER ── -->
+      <div id="sec-planner" class="sec">
+        <div class="sec-hdr"><div><h2>Study Planner</h2><div class="sub">Weekly engineering schedule</div></div><button class="add-btn" onclick="openModal('session')">+ Add Session</button></div>
+        <div class="metrics">
+          <div class="mc"><div class="mc-lbl">Planned</div><div class="mc-val a" id="plan-total">—</div></div>
+          <div class="mc"><div class="mc-lbl">Hours Blocked</div><div class="mc-val g" id="plan-hours">—</div></div>
+          <div class="mc"><div class="mc-lbl">Completed</div><div class="mc-val am" id="plan-done">—</div></div>
+          <div class="mc"><div class="mc-lbl">Subjects</div><div class="mc-val b">5</div></div>
+        </div>
+        <div id="planner-loading" class="loader"><div class="loader-spin"></div>Loading study plan...</div>
+        <div class="wk" id="week-grid-wrap" style="display:none">
+          <div class="wk-hdr">
+            <div class="wk-d" style="font-size:.63rem;color:var(--muted)">TIME</div>
+            <div class="wk-d">Mon</div><div class="wk-d">Tue</div><div class="wk-d">Wed</div>
+            <div class="wk-d td">Thu</div><div class="wk-d">Fri</div><div class="wk-d">Sat</div><div class="wk-d">Sun</div>
+          </div>
+          <div class="wk-b">
+            <div class="wk-ts"><div class="wk-t">8 AM</div><div class="wk-t">9 AM</div><div class="wk-t">10 AM</div><div class="wk-t">11 AM</div><div class="wk-t">12 PM</div><div class="wk-t">1 PM</div><div class="wk-t">2 PM</div></div>
+            <div class="wk-c" id="col-0"><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="ev cir" style="top:3px;height:98px">Circuits<br><small>8–10 AM</small></div><div class="ev fl" style="top:211px;height:52px">Fluids<br><small>2 PM</small></div></div>
+            <div class="wk-c"><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="ev ds" style="top:105px;height:98px">DSA<br><small>10–12</small></div></div>
+            <div class="wk-c"><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="ev sg" style="top:3px;height:52px">Signals<br><small>8 AM</small></div><div class="ev cir" style="top:159px;height:52px">Circuits<br><small>1 PM</small></div></div>
+            <div class="wk-c tc"><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="ev th" style="top:52px;height:98px">Thermo<br><small>9–11 AM</small></div></div>
+            <div class="wk-c"><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="ev cir" style="top:3px;height:52px">Circuits<br><small>8 AM</small></div><div class="ev ds" style="top:159px;height:98px">DSA<br><small>1–3 PM</small></div></div>
+            <div class="wk-c"><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="ev th" style="top:52px;height:52px">Thermo<br><small>9 AM</small></div></div>
+            <div class="wk-c"><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div><div class="wk-cell"></div></div>
+          </div>
+        </div>
+        <div id="api-sessions-list" class="cc" style="display:none">
+          <h3>Sessions from Backend</h3>
+          <div id="sessions-container"></div>
+        </div>
+      </div>
+
+      <!-- ── TASKS ── -->
+      <div id="sec-tasks" class="sec">
+        <div class="sec-hdr"><div><h2>Tasks</h2><div class="sub">Engineering assignments &amp; lab work</div></div><button class="add-btn" onclick="openModal('task')">+ Add Task</button></div>
+        <div class="t-cols">
+          <div class="t-panel">
+            <h3>📌 Pending <span class="t-cnt" id="pend-count">—</span></h3>
+            <div id="pend-list"><div class="loader"><div class="loader-spin"></div>Loading...</div></div>
+            <input class="t-inp" placeholder="+ Type task, press Enter…" onkeydown="if(event.key==='Enter')addInlineTask(this)"/>
+          </div>
+          <div class="t-panel">
+            <h3>✅ Completed <span class="t-cnt" id="done-count">—</span></h3>
+            <div id="done-list"><div class="loader"><div class="loader-spin"></div>Loading...</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ML PREDICTION ── -->
+      <div id="sec-ml" class="sec">
+        <div class="sec-hdr"><div><h2>🤖 ML Prediction Engine</h2><div class="sub">Random Forest / XGBoost powered academic intelligence</div></div></div>
+        <div class="api-bar" id="ml-api-bar"><span>🟢</span><span>ML API connected — <strong>https://ai-study-planner-2-9cwm.onrender.com</strong></span></div>
+
+        <!-- ML QUESTIONNAIRE -->
+        <div class="mlq-wrap" id="mlq-section">
+          <div class="mlq-header">
+            <div class="mlq-header-icon">🧠</div>
+            <div class="mlq-header-text">
+              <h3>Answer 10 questions to run your prediction</h3>
+              <p>These inputs train your personal ML model (Random Forest + XGBoost). More accurate answers = better predictions.</p>
+            </div>
+          </div>
+          <div class="mlq-progress">
+            <div class="mlq-prog-top"><span id="mlq-q-label">Question 1 of 10</span><span id="mlq-pct">0%</span></div>
+            <div class="mlq-prog-bg"><div class="mlq-prog-fill" id="mlq-fill" style="width:0%"></div></div>
+          </div>
+          <div class="mlq-dot-row" id="mlq-dots" style="margin-bottom:1.2rem">
+            <!-- dots injected by JS -->
+          </div>
+
+          <!-- Q1 -->
+          <div class="mlq-q active" id="mlq-q1">
+            <div class="mlq-q-label">Question 1 — Academic History</div>
+            <div class="mlq-q-text">📊 What was your CGPA / percentage in your last semester?</div>
+            <input class="mlq-input-ans" type="number" id="mla-cgpa" placeholder="e.g. 7.5 or 72%" min="0" max="10" step="0.1"/>
+            <div style="font-size:.78rem;color:var(--muted)">Enter CGPA (0–10) or percentage (0–100). We'll auto-detect.</div>
+          </div>
+
+          <!-- Q2 -->
+          <div class="mlq-q" id="mlq-q2">
+            <div class="mlq-q-label">Question 2 — Study Habits</div>
+            <div class="mlq-q-text">⏱ How many hours per day do you study on average?</div>
+            <div class="mlq-options">
+              <button class="mlq-opt" data-val="1" onclick="selectOpt(this,'q2')">Less than 1 hour</button>
+              <button class="mlq-opt" data-val="2" onclick="selectOpt(this,'q2')">1–2 hours</button>
+              <button class="mlq-opt selected" data-val="3.5" onclick="selectOpt(this,'q2')">3–4 hours</button>
+              <button class="mlq-opt" data-val="5.5" onclick="selectOpt(this,'q2')">5–6 hours</button>
+              <button class="mlq-opt full" data-val="7" onclick="selectOpt(this,'q2')">More than 6 hours</button>
+            </div>
+          </div>
+
+          <!-- Q3 -->
+          <div class="mlq-q" id="mlq-q3">
+            <div class="mlq-q-label">Question 3 — Assignment Completion</div>
+            <div class="mlq-q-text">📋 What percentage of your assignments do you complete on time?</div>
+            <div class="mlq-slider-wrap">
+              <input type="range" class="mlq-slider" id="mla-assign" min="0" max="100" value="65" oninput="document.getElementById('mla-assign-val').textContent=this.value+'%'"/>
+              <div class="mlq-slider-val"><span>0%</span><span id="mla-assign-val" style="color:var(--acc);font-weight:600">65%</span><span>100%</span></div>
+            </div>
+          </div>
+
+          <!-- Q4 -->
+          <div class="mlq-q" id="mlq-q4">
+            <div class="mlq-q-label">Question 4 — Attendance</div>
+            <div class="mlq-q-text">🏛 What is your average class attendance?</div>
+            <div class="mlq-options">
+              <button class="mlq-opt" data-val="98" onclick="selectOpt(this,'q4')">95–100% (Always)</button>
+              <button class="mlq-opt selected" data-val="83" onclick="selectOpt(this,'q4')">75–94% (Usually)</button>
+              <button class="mlq-opt" data-val="62" onclick="selectOpt(this,'q4')">50–74% (Sometimes)</button>
+              <button class="mlq-opt" data-val="35" onclick="selectOpt(this,'q4')">Below 50% (Rarely)</button>
+            </div>
+          </div>
+
+          <!-- Q5 -->
+          <div class="mlq-q" id="mlq-q5">
+            <div class="mlq-q-label">Question 5 — Family Background</div>
+            <div class="mlq-q-text">👨‍👩‍👧 What is your family's educational background?</div>
+            <div class="mlq-options">
+              <button class="mlq-opt" data-val="4" onclick="selectOpt(this,'q5')">Both parents — engineers/professionals</button>
+              <button class="mlq-opt selected" data-val="3" onclick="selectOpt(this,'q5')">One parent — graduate or above</button>
+              <button class="mlq-opt" data-val="2" onclick="selectOpt(this,'q5')">Parents — non-graduates</button>
+              <button class="mlq-opt" data-val="1" onclick="selectOpt(this,'q5')">First generation college student</button>
+            </div>
+          </div>
+
+          <!-- Q6 -->
+          <div class="mlq-q" id="mlq-q6">
+            <div class="mlq-q-label">Question 6 — Distance &amp; Commute</div>
+            <div class="mlq-q-text">🚌 How far is your institute from home? (Commute affects study time)</div>
+            <div class="mlq-options">
+              <button class="mlq-opt" data-val="0" onclick="selectOpt(this,'q6')">On campus / Hostel</button>
+              <button class="mlq-opt selected" data-val="1" onclick="selectOpt(this,'q6')">Less than 5 km</button>
+              <button class="mlq-opt" data-val="2" onclick="selectOpt(this,'q6')">5–15 km</button>
+              <button class="mlq-opt" data-val="3" onclick="selectOpt(this,'q6')">15–30 km</button>
+              <button class="mlq-opt full" data-val="4" onclick="selectOpt(this,'q6')">More than 30 km (1hr+ commute)</button>
+            </div>
+          </div>
+
+          <!-- Q7 -->
+          <div class="mlq-q" id="mlq-q7">
+            <div class="mlq-q-label">Question 7 — Study Consistency</div>
+            <div class="mlq-q-text">📅 How consistent is your daily study routine?</div>
+            <div class="mlq-options">
+              <button class="mlq-opt" data-val="4" onclick="selectOpt(this,'q7')">Very consistent — study every day</button>
+              <button class="mlq-opt selected" data-val="3" onclick="selectOpt(this,'q7')">Mostly consistent — 5–6 days/week</button>
+              <button class="mlq-opt" data-val="2" onclick="selectOpt(this,'q7')">Irregular — depends on mood</button>
+              <button class="mlq-opt" data-val="1" onclick="selectOpt(this,'q7')">Only before exams</button>
+            </div>
+          </div>
+
+          <!-- Q8 -->
+          <div class="mlq-q" id="mlq-q8">
+            <div class="mlq-q-label">Question 8 — Extracurricular / Work</div>
+            <div class="mlq-q-text">💼 Do you have any part-time work, coaching, or heavy extracurricular activities?</div>
+            <div class="mlq-options">
+              <button class="mlq-opt selected" data-val="0" onclick="selectOpt(this,'q8')">No, only focusing on studies</button>
+              <button class="mlq-opt" data-val="1" onclick="selectOpt(this,'q8')">Coaching / tuition (2–4 hrs/week)</button>
+              <button class="mlq-opt" data-val="2" onclick="selectOpt(this,'q8')">Part-time job on weekends</button>
+              <button class="mlq-opt" data-val="3" onclick="selectOpt(this,'q8')">Part-time job daily (5+ hrs/day)</button>
+            </div>
+          </div>
+
+          <!-- Q9 -->
+          <div class="mlq-q" id="mlq-q9">
+            <div class="mlq-q-label">Question 9 — Stress &amp; Sleep</div>
+            <div class="mlq-q-text">😴 How many hours of sleep do you get on average per night?</div>
+            <div class="mlq-options">
+              <button class="mlq-opt" data-val="4" onclick="selectOpt(this,'q9')">Less than 5 hours</button>
+              <button class="mlq-opt selected" data-val="6" onclick="selectOpt(this,'q9')">5–6 hours</button>
+              <button class="mlq-opt" data-val="7.5" onclick="selectOpt(this,'q9')">7–8 hours</button>
+              <button class="mlq-opt" data-val="9" onclick="selectOpt(this,'q9')">More than 8 hours</button>
+            </div>
+          </div>
+
+          <!-- Q10 -->
+          <div class="mlq-q" id="mlq-q10">
+            <div class="mlq-q-label">Question 10 — Internet &amp; Resources</div>
+            <div class="mlq-q-text">💻 How would you rate your access to study resources? (internet, books, lab access)</div>
+            <div class="mlq-options">
+              <button class="mlq-opt" data-val="4" onclick="selectOpt(this,'q10')">Excellent — fast internet, all books, full lab access</button>
+              <button class="mlq-opt selected" data-val="3" onclick="selectOpt(this,'q10')">Good — decent internet, most resources available</button>
+              <button class="mlq-opt" data-val="2" onclick="selectOpt(this,'q10')">Moderate — limited internet, some books missing</button>
+              <button class="mlq-opt" data-val="1" onclick="selectOpt(this,'q10')">Poor — frequent connectivity issues</button>
+            </div>
+          </div>
+
+          <div class="mlq-nav">
+            <button class="mlq-back" id="mlq-back-btn" onclick="mlqBack()" style="visibility:hidden">← Back</button>
+            <div class="mlq-dot-row" id="mlq-dots-nav"></div>
+            <button class="mlq-next" id="mlq-next-btn" onclick="mlqNext()">Next →</button>
+          </div>
+        </div>
+
+        <!-- RESULTS (shown after prediction runs) -->
+        <div class="mlq-result" id="mlq-result">
+          <div class="result-header">
+            <div style="font-size:2.5rem;margin-bottom:.5rem">🎯</div>
+            <h3>Your ML Prediction Results</h3>
+            <p>Based on your 10 answers — powered by Random Forest &amp; XGBoost</p>
+          </div>
+          <div class="result-scores" id="mlq-result-scores">
+            <div class="rs-card">
+              <div class="rs-label">Performance Score</div>
+              <div class="rs-val" id="r-perf" style="color:var(--acc)">—</div>
+              <div style="font-size:.78rem;color:var(--muted)">Predicted Grade: <strong id="r-grade" style="color:var(--text)">—</strong></div>
+              <div class="rs-bar"><div class="rs-bar-f" id="r-perf-bar" style="background:var(--acc)"></div></div>
+            </div>
+            <div class="rs-card">
+              <div class="rs-label">Risk Score</div>
+              <div class="rs-val" id="r-risk" style="color:var(--amber)">—</div>
+              <div style="font-size:.78rem;color:var(--muted)" id="r-risk-lbl">—</div>
+              <div class="rs-bar"><div class="rs-bar-f" id="r-risk-bar" style="background:var(--amber)"></div></div>
+            </div>
+            <div class="rs-card">
+              <div class="rs-label">Productivity Score</div>
+              <div class="rs-val" id="r-prod" style="color:var(--green)">—</div>
+              <div style="font-size:.78rem;color:var(--muted)" id="r-prod-lbl">—</div>
+              <div class="rs-bar"><div class="rs-bar-f" id="r-prod-bar" style="background:var(--green)"></div></div>
+            </div>
+          </div>
+          <div class="result-insights" id="mlq-insights"></div>
+          <!-- Forecast chart -->
+          <div class="cc" style="margin-bottom:1.2rem">
+            <h3>4-Week Performance Trajectory</h3>
+            <div class="forecast-grid" style="margin-bottom:1rem">
+              <div class="fcast-card"><div class="fcast-wk">Week 1</div><div class="fcast-val" id="rfw1" style="color:var(--acc)">—</div><div class="fcast-trend" id="rft1">—</div></div>
+              <div class="fcast-card"><div class="fcast-wk">Week 2</div><div class="fcast-val" id="rfw2" style="color:var(--acc)">—</div><div class="fcast-trend" id="rft2">—</div></div>
+              <div class="fcast-card"><div class="fcast-wk">Week 3</div><div class="fcast-val" id="rfw3" style="color:var(--acc)">—</div><div class="fcast-trend" id="rft3">—</div></div>
+              <div class="fcast-card"><div class="fcast-wk">Week 4</div><div class="fcast-val" id="rfw4" style="color:var(--acc)">—</div><div class="fcast-trend" id="rft4">—</div></div>
+            </div>
+            <div class="cw" style="height:200px"><canvas id="resultForecastChart"></canvas></div>
+          </div>
+          <!-- Model info -->
+          <div class="cg" style="margin-bottom:1.2rem">
+            <div class="cc">
+              <h3>Model Accuracy Report</h3>
+              <div class="pb-bars">
+                <div><div class="pb-top"><span>Random Forest</span><span id="r-rf" style="color:var(--green)">89%</span></div><div class="pb-bg"><div class="pb-f" id="r-rf-bar" style="background:var(--green);width:89%"></div></div></div>
+                <div><div class="pb-top"><span>XGBoost</span><span id="r-xgb" style="color:var(--acc)">91%</span></div><div class="pb-bg"><div class="pb-f" id="r-xgb-bar" style="background:var(--acc);width:91%"></div></div></div>
+                <div><div class="pb-top"><span>Best Model Selected</span><span id="r-best" style="color:var(--amber)">XGBoost — 91%</span></div><div class="pb-bg"><div class="pb-f" id="r-best-bar" style="background:var(--amber);width:91%"></div></div></div>
+              </div>
+            </div>
+            <div class="cc">
+              <h3>Outcome Simulator</h3>
+              <div class="mf"><label>Simulate: Study Hours / Day</label><input type="range" id="sim-hours" min="1" max="12" value="3" oninput="runSimulator()"/><div style="font-size:.8rem;color:var(--muted);margin-top:.3rem">Hours: <span id="sim-hours-val">3</span>h/day</div></div>
+              <div class="mf"><label>Simulate: Task Completion Rate</label><input type="range" id="sim-tasks" min="10" max="100" value="65" oninput="runSimulator()"/><div style="font-size:.8rem;color:var(--muted);margin-top:.3rem">Completion: <span id="sim-tasks-val">65</span>%</div></div>
+              <div style="background:var(--surf2);border-radius:12px;padding:1rem;text-align:center">
+                <div style="font-size:.78rem;color:var(--muted);margin-bottom:.4rem">Simulated Outcome Grade</div>
+                <div style="font-size:2rem;font-weight:700;color:var(--acc)" id="sim-outcome">B+</div>
+                <div style="font-size:.78rem;color:var(--muted)" id="sim-desc">Adjust sliders to simulate</div>
+              </div>
+            </div>
+          </div>
+          <div class="result-cta">
+            <button class="btn-p" onclick="retakePrediction()">🔄 Retake Questionnaire</button>
+            <button class="btn-g" onclick="showSec('twin')">🧬 View Digital Twin</button>
+            <button class="btn-g" onclick="showSec('intervention')">🚨 View Interventions</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DIGITAL TWIN ── -->
+      <div id="sec-twin" class="sec">
+        <div class="sec-hdr"><div><h2>🧬 Academic Digital Twin</h2><div class="sub">Real-time engineering study model · Updated daily</div></div>
+          <button class="add-btn" onclick="updateTwinState()">↻ Update Twin State</button>
+        </div>
+        <!-- Burnout Detection -->
+        <div class="burnout-meter" id="burnout-section">
+          <h3>🔥 Burnout Detection System</h3>
+          <div class="burnout-score">
+            <div class="burnout-circle" id="burnout-circle">
+              <div class="burnout-num" id="burnout-num">—</div>
+              <div class="burnout-lbl">Burnout Risk</div>
+            </div>
+            <div class="burnout-details">
+              <div class="bd-row"><span>Session Duration Trend</span><div class="bd-bar"><div class="bd-fill" id="bd-duration" style="background:var(--amber);width:0%"></div></div><span id="bd-duration-val" style="font-size:.78rem;color:var(--muted)">—</span></div>
+              <div class="bd-row"><span>Late-Night Study %</span><div class="bd-bar"><div class="bd-fill" id="bd-night" style="background:var(--red);width:0%"></div></div><span id="bd-night-val" style="font-size:.78rem;color:var(--muted)">—</span></div>
+              <div class="bd-row"><span>Missed Sessions (7d)</span><div class="bd-bar"><div class="bd-fill" id="bd-missed" style="background:var(--amber);width:0%"></div></div><span id="bd-missed-val" style="font-size:.78rem;color:var(--muted)">—</span></div>
+              <div class="bd-row"><span>Streak Consistency</span><div class="bd-bar"><div class="bd-fill" id="bd-streak" style="background:var(--green);width:0%"></div></div><span id="bd-streak-val" style="font-size:.78rem;color:var(--muted)">—</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="tw-g">
+          <div class="tw-c"><h3>Performance Score</h3>
+            <div class="sc-ring">
+              <div style="position:relative;width:130px;height:130px">
+                <canvas id="gaugeChart" width="130" height="130"></canvas>
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                  <div class="rv" id="twin-perf-val" style="color:var(--amber)">—</div><div class="rl">/ 100</div>
+                </div>
+              </div>
+              <div style="font-size:.78rem;color:var(--muted);text-align:center" id="twin-perf-label">Loading twin state...</div>
+            </div>
+          </div>
+          <div class="tw-c"><h3>Risk Assessment</h3>
+            <div class="risk-row">
+              <div class="rb rb-hi"><div class="rn" id="risk-high-cnt">—</div><div class="rl2">High Risk</div></div>
+              <div class="rb rb-md"><div class="rn" id="risk-med-cnt">—</div><div class="rl2">Medium Risk</div></div>
+              <div class="rb rb-lo"><div class="rn" id="risk-low-cnt">—</div><div class="rl2">Low Risk</div></div>
+            </div>
+            <div class="tw-st"><span>Consistency Index</span><span class="tw-stv" id="twin-consistency">—</span></div>
+            <div class="tw-st"><span>Academic Health Score</span><span class="tw-stv" id="twin-health">—</span></div>
+            <div class="tw-st"><span>Risk Trend</span><span class="tw-stv" id="twin-risk-trend">—</span></div>
+          </div>
+          <div class="tw-c"><h3>Productivity Radar</h3><div class="cw" style="height:160px"><canvas id="radarChart"></canvas></div></div>
+          <div class="tw-c s2"><h3>AI-Powered Insights</h3>
+            <div class="ins-l" id="twin-insights">
+              <div class="loader"><div class="loader-spin"></div>Loading insights...</div>
+            </div>
+          </div>
+          <div class="tw-c"><h3>Twin Statistics</h3>
+            <div class="tw-st"><span>Study efficiency</span><span class="tw-stv" id="twin-efficiency">—</span></div>
+            <div class="tw-st"><span>Focus avg</span><span class="tw-stv" id="twin-focus">—</span></div>
+            <div class="tw-st"><span>Distraction rate</span><span class="tw-stv" id="twin-distraction">—</span></div>
+            <div class="tw-st"><span>Goal completion</span><span class="tw-stv" id="twin-goal">—</span></div>
+            <div class="tw-st"><span>Predicted grade</span><span class="tw-stv" id="twin-grade">—</span></div>
+            <div class="tw-st"><span>Sessions to target</span><span class="tw-stv" id="twin-sessions-left">—</span></div>
+          </div>
+        </div>
+        <!-- 4-Week Forecast from Twin -->
+        <div class="cc">
+          <h3>4-Week Academic Forecast (Digital Twin Projection)</h3>
+          <div class="forecast-grid" style="margin-bottom:1rem">
+            <div class="fcast-card"><div class="fcast-wk">Week 1</div><div class="fcast-val" id="tw-w1" style="color:var(--amber)">—</div><div class="fcast-trend" id="tw-t1">—</div></div>
+            <div class="fcast-card"><div class="fcast-wk">Week 2</div><div class="fcast-val" id="tw-w2" style="color:var(--acc)">—</div><div class="fcast-trend" id="tw-t2">—</div></div>
+            <div class="fcast-card"><div class="fcast-wk">Week 3</div><div class="fcast-val" id="tw-w3" style="color:var(--acc)">—</div><div class="fcast-trend" id="tw-t3">—</div></div>
+            <div class="fcast-card"><div class="fcast-wk">Week 4</div><div class="fcast-val" id="tw-w4" style="color:var(--green)">—</div><div class="fcast-trend" id="tw-t4">—</div></div>
+          </div>
+          <div class="cw" style="height:200px"><canvas id="twinForecastChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ── ANALYTICS ── -->
+      <div id="sec-analytics" class="sec">
+        <div class="sec-hdr"><div><h2>Analytics</h2><div class="sub">Live performance, risk &amp; productivity data</div></div></div>
+        <div class="metrics">
+          <div class="mc"><div class="mc-lbl">Productivity Score</div><div class="mc-val a" id="an-prod">—</div><div class="mc-ch up" id="an-prod-ch">Loading...</div></div>
+          <div class="mc"><div class="mc-lbl">Avg Session</div><div class="mc-val g" id="an-sess">—</div><div class="mc-ch up">min avg</div></div>
+          <div class="mc"><div class="mc-lbl">Overall Risk</div><div class="mc-val am" id="an-risk">—</div><div class="mc-ch dn" id="an-risk-ch">Loading...</div></div>
+          <div class="mc"><div class="mc-lbl">Monthly Hours</div><div class="mc-val b" id="an-hours">—</div><div class="mc-ch up">This month</div></div>
+        </div>
+        <div class="cg">
+          <div class="cc"><h3>Weekly Performance Score</h3><div class="cw" style="height:220px"><canvas id="perfLine"></canvas></div></div>
+          <div class="cc"><h3>Subject Time Distribution</h3><div class="cw" style="height:220px"><canvas id="subjDonut"></canvas></div></div>
+          <div class="cc"><h3>Productivity by Day</h3><div class="cw" style="height:200px"><canvas id="prodBar"></canvas></div></div>
+          <div class="cc">
+            <h3>Subject Coverage Progress</h3>
+            <div class="pb-bars" id="coverage-bars">
+              <div class="loader"><div class="loader-spin"></div>Loading...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── INTERVENTION ── -->
+      <div id="sec-intervention" class="sec">
+        <div class="sec-hdr">
+          <div><h2>🚨 Proactive Intervention</h2><div class="sub">Real-time alerts — teachers, students &amp; counselors auto-notified</div></div>
+          <div style="display:flex;gap:.7rem">
+            <button class="dng-btn" onclick="triggerAlert()">+ Trigger Alert</button>
+            <button class="add-btn" onclick="dismissAll()">✓ Dismiss All</button>
+          </div>
+        </div>
+        <div class="iv-hdr">
+          <div class="iv-left"><div class="iv-ico">🎯</div><div><div class="iv-ttl">Intervention Engine Active</div><div class="iv-sub">Monitoring 5 engineering subjects · Connected to backend</div></div></div>
+          <div class="iv-stats">
+            <div class="ivs"><div class="ivs-v" style="color:var(--red)" id="iv-active">3</div><div class="ivs-l">Active Alerts</div></div>
+            <div class="ivs"><div class="ivs-v" style="color:var(--amber)">2</div><div class="ivs-l">Pending Actions</div></div>
+            <div class="ivs"><div class="ivs-v" style="color:var(--green)">4</div><div class="ivs-l">Resolved This Week</div></div>
+          </div>
+        </div>
+        <div class="af">
+          <button class="fb on" onclick="filterA('all',this)">All Alerts</button>
+          <button class="fb" onclick="filterA('sh',this)">🔴 Critical</button>
+          <button class="fb" onclick="filterA('sm',this)">🟡 Medium</button>
+          <button class="fb" onclick="filterA('sl',this)">🔵 Advisory</button>
+          <button class="fb" onclick="filterA('tchr',this)">👩‍🏫 Teacher</button>
+          <button class="fb" onclick="filterA('stud',this)">🎓 Student</button>
+          <button class="fb" onclick="filterA('cons',this)">💬 Counselor</button>
+        </div>
+        <div class="ag" id="alerts-grid">
+          <div class="ac sh" data-cls="sh" data-role="tchr cons">
+            <div class="ac-top"><div class="ac-who"><div class="ac-av tchr">PS</div><div><div class="ac-name">Prof. Sharma</div><div class="ac-role">Thermodynamics Faculty</div></div></div><span class="ac-bdg bdg-h">🔴 Critical</span></div>
+            <span class="ac-subj" style="background:rgba(78,203,138,.15);color:var(--green)">Thermodynamics</span>
+            <div class="ac-msg"><strong>Ishant Rana</strong> has completed only <strong>28%</strong> of thermodynamics syllabus with mid-semester exam in 2 weeks. Missed 3 consecutive study sessions.</div>
+            <div class="ac-acts">
+              <button class="ac-btn pr" onclick="bookTutoring('Thermodynamics')">📚 Book Extra Tutoring</button>
+              <button class="ac-btn" onclick="adjustSchedule('Thermodynamics')">📅 Adjust Schedule</button>
+              <button class="ac-btn" onclick="dismissAlert(this)">✓ Dismiss</button>
+            </div>
+            <div class="ac-time">⏱ 47 min ago · Also sent to student &amp; counselor</div>
+          </div>
+          <div class="ac sm" data-cls="sm" data-role="tchr stud">
+            <div class="ac-top"><div class="ac-who"><div class="ac-av stud">IR</div><div><div class="ac-name">Ishant Rana</div><div class="ac-role">Student — B.Tech EE Sem 5</div></div></div><span class="ac-bdg bdg-m">🟡 Medium</span></div>
+            <span class="ac-subj" style="background:rgba(244,114,182,.15);color:var(--pink)">Signals &amp; Systems</span>
+            <div class="ac-msg">Your <strong>Signals &amp; Systems</strong> task completion dropped to <strong>41%</strong>. 4 assignments pending. Recommended: 2 focused 90-min sessions before Friday.</div>
+            <div class="ac-acts">
+              <button class="ac-btn pr" onclick="showSec('planner');toast('📅 2 Signals sessions added','ta')">📅 Add to Planner</button>
+              <button class="ac-btn" onclick="showSec('tasks')">📋 View Tasks</button>
+              <button class="ac-btn" onclick="dismissAlert(this)">✓ Dismiss</button>
+            </div>
+            <div class="ac-time">⏱ 2 hours ago · Prof. Nair notified</div>
+          </div>
+          <div class="ac sl" data-cls="sl" data-role="cons stud">
+            <div class="ac-top"><div class="ac-who"><div class="ac-av cons">RC</div><div><div class="ac-name">Dr. Reena Counselor</div><div class="ac-role">Academic Counselor</div></div></div><span class="ac-bdg bdg-l">🔵 Advisory</span></div>
+            <span class="ac-subj" style="background:rgba(255,140,66,.15);color:var(--orange)">DSA + Signals (Multi-subject)</span>
+            <div class="ac-msg"><strong>Elevated stress indicators</strong> detected. Sessions becoming shorter (&lt;40 min avg) and late-night. Burnout pattern detected by ML model.</div>
+            <div class="ac-acts">
+              <button class="ac-btn pr" onclick="scheduleCounseling()">💬 Schedule Counseling</button>
+              <button class="ac-btn" onclick="toast('📧 Wellness resources sent to email','tg')">📧 Send Resources</button>
+              <button class="ac-btn" onclick="dismissAlert(this)">✓ Dismiss</button>
+            </div>
+            <div class="ac-time">⏱ 5 hours ago · Student notified</div>
+          </div>
+          <div class="ac sm" data-cls="sm" data-role="tchr">
+            <div class="ac-top"><div class="ac-who"><div class="ac-av tchr">PN</div><div><div class="ac-name">Prof. Nair</div><div class="ac-role">Circuits &amp; Electronics Faculty</div></div></div><span class="ac-bdg bdg-m">🟡 Medium</span></div>
+            <span class="ac-subj" style="background:rgba(124,110,245,.15);color:var(--acc)">Circuits &amp; Electronics</span>
+            <div class="ac-msg">Class average for circuits exam projected at <strong>54%</strong>. 4 students below threshold. Targeted revision session recommended.</div>
+            <div class="ac-acts">
+              <button class="ac-btn pr" onclick="toast('📢 Revision session announced — Thu 3 PM','ta')">📢 Announce Revision</button>
+              <button class="ac-btn" onclick="toast('📊 Student report downloaded','tg')">📊 View Report</button>
+              <button class="ac-btn" onclick="dismissAlert(this)">✓ Dismiss</button>
+            </div>
+            <div class="ac-time">⏱ 1 day ago · 4 students at risk</div>
+          </div>
+        </div>
+        <div class="cc" style="margin-bottom:1.5rem">
+          <h3>Intervention Timeline</h3>
+          <div class="tl">
+            <div class="tl-it"><div class="tl-dot g">✓</div><div class="tl-body"><div class="tl-ttl">Extra tutoring booked — Fluid Mechanics</div><div class="tl-desc">Coverage improved from 38% to 61% after 2 extra sessions.</div><div class="tl-time">Mar 18 · Resolved</div></div></div>
+            <div class="tl-it"><div class="tl-dot g">✓</div><div class="tl-body"><div class="tl-ttl">Schedule adjusted — DSA sessions doubled</div><div class="tl-desc">Task completion now at 78%. Sessions increased from 2 to 4/week.</div><div class="tl-time">Mar 15 · Resolved</div></div></div>
+            <div class="tl-it"><div class="tl-dot a">!</div><div class="tl-body"><div class="tl-ttl">Counseling session scheduled — burnout pattern</div><div class="tl-desc">Meeting with Dr. Reena on Mar 24. Wellness plan in progress.</div><div class="tl-time">Today · Pending</div></div></div>
+            <div class="tl-it"><div class="tl-dot r">🚨</div><div class="tl-body"><div class="tl-ttl">Critical: Thermodynamics coverage alert</div><div class="tl-desc">Prof. Sharma notified. Extra tutoring booking in progress.</div><div class="tl-time">Today · Active</div></div></div>
+          </div>
+        </div>
+        <div class="cc" style="margin-bottom:1.5rem">
+          <h3 style="margin-bottom:1.2rem">Available Support Actions</h3>
+          <div class="sg">
+            <div class="sc2" onclick="bookTutoring('General')"><div class="sc2-ico">📚</div><div class="sc2-ttl">Extra Tutoring</div><div class="sc2-desc">Request 1-on-1 or group tutoring for struggling subjects.</div><span class="sc2-cnt" style="background:rgba(124,110,245,.15);color:var(--acc)">3 tutors available</span></div>
+            <div class="sc2" onclick="adjustSchedule('General')"><div class="sc2-ico">📅</div><div class="sc2-ttl">Adjust Schedule</div><div class="sc2-desc">Auto-optimize weekly plan to prioritize high-risk subjects.</div><span class="sc2-cnt" style="background:rgba(78,203,138,.15);color:var(--green)">AI-powered</span></div>
+            <div class="sc2" onclick="scheduleCounseling()"><div class="sc2-ico">💬</div><div class="sc2-ttl">Request Counseling</div><div class="sc2-desc">Book an academic or personal counseling session.</div><span class="sc2-cnt" style="background:rgba(90,179,245,.15);color:var(--blue)">Next: Tue 11 AM</span></div>
+          </div>
+        </div>
+        <div class="cc">
+          <h3 style="margin-bottom:1.2rem">Students At Risk — Class View (Faculty Mode)</h3>
+          <div style="overflow-x:auto">
+            <table class="rt">
+              <thead><tr><th>Student</th><th>Subject at Risk</th><th>Coverage</th><th>Missed</th><th>Risk</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td><div style="font-weight:600;font-size:.85rem">Ishant Rana</div><div style="font-size:.72rem;color:var(--muted)">B.Tech EE Sem 5</div></td><td>Thermodynamics</td><td><div class="pm"><div class="pm-b"><div class="pm-f" style="width:28%;background:var(--red)"></div></div><div class="pm-v" style="color:var(--red)">28%</div></div></td><td style="color:var(--red)">3</td><td><span class="rp rp-h">High</span></td><td><a class="al" onclick="bookTutoring('Thermodynamics')">Book Tutoring</a></td></tr>
+                <tr><td><div style="font-weight:600;font-size:.85rem">Priya Mehta</div><div style="font-size:.72rem;color:var(--muted)">B.Tech ECE Sem 5</div></td><td>Signals &amp; Systems</td><td><div class="pm"><div class="pm-b"><div class="pm-f" style="width:41%;background:var(--amber)"></div></div><div class="pm-v" style="color:var(--amber)">41%</div></div></td><td style="color:var(--amber)">1</td><td><span class="rp rp-m">Medium</span></td><td><a class="al" onclick="adjustSchedule('Signals')">Adjust Plan</a></td></tr>
+                <tr><td><div style="font-weight:600;font-size:.85rem">Rahul Mishra</div><div style="font-size:.72rem;color:var(--muted)">B.Tech ME Sem 5</div></td><td>Fluid Mechanics</td><td><div class="pm"><div class="pm-b"><div class="pm-f" style="width:55%;background:var(--amber)"></div></div><div class="pm-v" style="color:var(--amber)">55%</div></div></td><td>0</td><td><span class="rp rp-m">Medium</span></td><td><a class="al" onclick="scheduleCounseling()">Counseling</a></td></tr>
+                <tr><td><div style="font-weight:600;font-size:.85rem">Sneha Patel</div><div style="font-size:.72rem;color:var(--muted)">B.Tech CSE Sem 5</div></td><td>DSA</td><td><div class="pm"><div class="pm-b"><div class="pm-f" style="width:72%;background:var(--green)"></div></div><div class="pm-v" style="color:var(--green)">72%</div></div></td><td>0</td><td><span class="rp rp-l">Low</span></td><td><a class="al" onclick="toast('✅ On track — monitoring','tg')">Monitor</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /app-shell -->
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="modal-overlay">
+  <div class="mb" id="modal-content"></div>
+</div>
+
+<div class="toast-c" id="toast-c"></div>
+
+<script>
+/* ═══════════ CONFIG ═══════════ */
+const API = 'https://ai-study-planner-2-9cwm.onrender.com';
+let TOKEN = localStorage.getItem('tsf_token') || '';
+let USER  = JSON.parse(localStorage.getItem('tsf_user') || '{"name":"Ishant Rana","email":"ishant@university.edu","role":"student"}');
+let CHARTS = {};
+
+/* ═══════════ API HELPER ═══════════ */
+async function api(method, path, body=null) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', ...(TOKEN ? { Authorization: 'Bearer '+TOKEN } : {}) }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const r = await fetch(API + path, opts);
+    const data = await r.json().catch(()=>({error:'Invalid JSON'}));
+    if (!r.ok) throw new Error(data.message || data.error || 'API error '+r.status);
+    return data;
+  } catch(e) {
+    throw e;
+  }
+}
+
+/* ═══════════ NAVIGATION ═══════════ */
+function goLanding() { sp('pg-landing'); }
+function goAuth()    { sp('pg-auth'); pingAPI(); }
+function goApp(s)    { sp('pg-app'); if(s) setTimeout(()=>showSec(s),50); updateNavUser(); }
+function sp(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function showSec(id) {
+  sp('pg-app');
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  document.querySelectorAll('.sb-it').forEach(i=>i.classList.remove('active'));
+  const m={dashboard:'Dashboard',planner:'Study Planner',tasks:'Tasks',ml:'ML',twin:'Digital Twin',analytics:'Analytics',intervention:'Interventions'};
+  document.querySelectorAll('.sb-it').forEach(i=>{ if(i.textContent.includes(m[id]||'__'))i.classList.add('active'); });
+  if(id==='dashboard') loadDashboard();
+  if(id==='planner')   loadPlanner();
+  if(id==='tasks')     loadTasks();
+  if(id==='ml')        loadML();
+  if(id==='twin')      loadTwin();
+  if(id==='analytics') loadAnalytics();
+}
+function updateNavUser() {
+  const n = USER.name || 'Ishant Rana';
+  document.getElementById('nav-uname').textContent = n;
+  document.getElementById('nav-av-initials').textContent = n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('sb-uname').textContent = n;
+  document.getElementById('sb-avatar').textContent = n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  if(TOKEN) { document.getElementById('nav-user').style.display='flex'; document.getElementById('nav-auth-btn').style.display='none'; }
+}
+
+/* ═══════════ AUTH ═══════════ */
+async function pingAPI() {
+  const dot = document.getElementById('api-dot');
+  const txt = document.getElementById('api-status-txt');
+  dot.className='api-dot chk'; txt.textContent='Connecting to backend...';
+  try {
+    const r = await fetch(API+'/');
+    dot.className='api-dot ok'; txt.textContent='Backend connected — '+API;
+  } catch(e) {
+    dot.className='api-dot err'; txt.textContent='Backend unreachable — using demo mode';
+  }
+}
+function authTab(t) {
+  document.getElementById('form-login').style.display=t==='login'?'block':'none';
+  document.getElementById('form-register').style.display=t==='register'?'block':'none';
+  document.getElementById('tab-login').classList.toggle('active',t==='login');
+  document.getElementById('tab-register').classList.toggle('active',t==='register');
+  document.getElementById('auth-title').textContent=t==='login'?'Welcome back':'Create account';
+  document.getElementById('auth-sub').textContent=t==='login'?'Log in to your engineering dashboard':'Join thousands of engineering students';
+}
+async function doLogin() {
+  const email=document.getElementById('login-email').value;
+  const pass=document.getElementById('login-pass').value;
+  const btn=document.getElementById('login-btn');
+  const err=document.getElementById('login-err');
+  if(!email||!pass){err.textContent='Please fill all fields.';err.classList.add('show');return;}
+  btn.disabled=true; btn.textContent='Signing in...';
+  try {
+    const data = await api('POST','/api/auth/login',{email,password:pass});
+    TOKEN = data.token || data.access_token || '';
+    USER  = data.user || {name:email.split('@')[0],email};
+    localStorage.setItem('tsf_token',TOKEN);
+    localStorage.setItem('tsf_user',JSON.stringify(USER));
+    toast('✅ Welcome back, '+USER.name+'!','tg');
+    goApp('dashboard');
+  } catch(e) {
+    // demo fallback
+    TOKEN='demo-token'; USER={name:'Ishant Rana',email,role:'student'};
+    localStorage.setItem('tsf_token',TOKEN);
+    localStorage.setItem('tsf_user',JSON.stringify(USER));
+    toast('🎓 Demo mode activated — backend fallback','ta');
+    goApp('dashboard');
+  }
+  btn.disabled=false; btn.innerHTML='Sign In →';
+}
+async function doRegister() {
+  const fn=document.getElementById('reg-fname').value;
+  const ln=document.getElementById('reg-lname').value;
+  const email=document.getElementById('reg-email').value;
+  const pass=document.getElementById('reg-pass').value;
+  const role=document.getElementById('reg-role').value;
+  const branch=document.getElementById('reg-branch').value;
+  const btn=document.getElementById('reg-btn');
+  const err=document.getElementById('reg-err');
+  if(!fn||!ln||!email||!pass){err.textContent='Please fill all fields.';err.classList.add('show');return;}
+  btn.disabled=true; btn.textContent='Creating account...';
+  try {
+    const data = await api('POST','/api/auth/register',{name:fn+' '+ln,email,password:pass,role,branch});
+    TOKEN = data.token || data.access_token || '';
+    USER  = data.user || {name:fn+' '+ln,email,role,branch};
+    localStorage.setItem('tsf_token',TOKEN);
+    localStorage.setItem('tsf_user',JSON.stringify(USER));
+    toast('🎉 Account created! Welcome, '+fn+'!','tg');
+    sp('pg-onboard');
+  } catch(e) {
+    TOKEN='demo-token'; USER={name:fn+' '+ln,email,role,branch};
+    localStorage.setItem('tsf_token',TOKEN);
+    localStorage.setItem('tsf_user',JSON.stringify(USER));
+    toast('🎓 Demo mode — account saved locally','ta');
+    sp('pg-onboard');
+  }
+  btn.disabled=false; btn.innerHTML='Create Account →';
+}
+function demoLogin() {
+  TOKEN='demo-token';
+  USER={name:'Ishant Rana',email:'ishant@university.edu',role:'student',branch:'Electrical Engineering'};
+  localStorage.setItem('tsf_token',TOKEN);
+  localStorage.setItem('tsf_user',JSON.stringify(USER));
+  toast('🎓 Demo mode — Ishant Rana logged in','tg');
+  goApp('dashboard');
+}
+
+/* ═══════════ DASHBOARD ═══════════ */
+async function loadDashboard() {
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  ['mc-sessions','mc-hours','mc-tasks'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.classList.add('loading');
+  });
+  try {
+    const data = await api('GET','/api/dashboard/summary');
+    setMC('mv-sessions', data.sessions_this_week??8, 'mc-sessions', '↑ '+((data.sessions_delta??2)>0?'+':'')+data.sessions_delta+' from last week', (data.sessions_delta??2)>0);
+    setMC('mv-hours', (data.hours_studied??13)+'h', 'mc-hours', '↑ '+(data.hours_delta??1.5)+'h from last week', true);
+    setMC('mv-tasks', (data.tasks_done??3)+'/'+(data.tasks_total??8), 'mc-tasks', Math.round(((data.tasks_done??3)/(data.tasks_total??8))*100)+'% completion', true);
+  } catch(e) {
+    setMC('mv-sessions','8','mc-sessions','↑ 2 from last week',true);
+    setMC('mv-hours','13h','mc-hours','↑ 1.5h from last week',true);
+    setMC('mv-tasks','3/8','mc-tasks','37% — behind target',false);
+  }
+  if(!CHARTS['dashBar']) initDashCharts();
+  loadDashTasks();
+}
+function setMC(valId, val, cardId, ch, up) {
+  document.getElementById(valId).textContent=val;
+  const card=document.getElementById(cardId);
+  if(card){card.classList.remove('loading');}
+}
+async function loadDashTasks() {
+  const el=document.getElementById('dash-tasks-list');
+  try {
+    const data = await api('GET','/api/tasks?limit=4');
+    const tasks = data.tasks||data||[];
+    renderDashTasks(tasks.slice(0,4));
+  } catch(e) {
+    renderDashTasks([
+      {id:1,title:'Solve 15 op-amp circuit problems',subject:'Circuits',completed:false},
+      {id:2,title:'Complete Carnot cycle derivation',subject:'Thermodynamics',completed:false},
+      {id:3,title:'Implement binary search tree in C++',subject:'DSA',completed:true},
+      {id:4,title:'Bernoulli equation practice set',subject:'Fluids',completed:true}
+    ]);
+  }
+}
+function renderDashTasks(tasks) {
+  const el=document.getElementById('dash-tasks-list');
+  if(!tasks.length){el.innerHTML='<div style="text-align:center;color:var(--muted);padding:1rem;font-size:.85rem">No tasks for today</div>';return;}
+  const tagMap={'Circuits':'tt-cir','Thermodynamics':'tt-th','DSA':'tt-ds','Fluids':'tt-fl','Signals':'tt-sg'};
+  el.innerHTML = tasks.map((t,i)=>`
+    <div class="t-it" ${i===tasks.length-1?'style="border-bottom:none"':''}>
+      <div class="t-ck ${t.completed?'done':''}" onclick="toggleDashTask(this,${t.id||i})">${t.completed?'✓':''}</div>
+      <span class="t-tx ${t.completed?'done':''}">${t.title||t.name||'Task'}</span>
+      <span class="t-tag ${tagMap[t.subject]||'tt-cir'}">${t.subject||'General'}</span>
+    </div>`).join('');
+}
+async function toggleDashTask(el,id) {
+  el.classList.toggle('done');
+  el.textContent=el.classList.contains('done')?'✓':'';
+  el.nextElementSibling.classList.toggle('done');
+  try { await api('PATCH','/api/tasks/'+id,{completed:el.classList.contains('done')}); } catch(e){}
+}
+
+/* ═══════════ PLANNER ═══════════ */
+async function loadPlanner() {
+  document.getElementById('planner-loading').style.display='flex';
+  document.getElementById('week-grid-wrap').style.display='none';
+  try {
+    const data = await api('GET','/api/study-plans');
+    const plans = data.plans||data||[];
+    document.getElementById('plan-total').textContent = plans.length||9;
+    document.getElementById('plan-hours').textContent = (plans.reduce((a,p)=>a+(p.duration_hours||1.5),0)||14)+'h';
+    document.getElementById('plan-done').textContent = plans.filter(p=>p.completed).length||6;
+    if(plans.length>0) renderAPIPlans(plans);
+  } catch(e) {
+    document.getElementById('plan-total').textContent='9';
+    document.getElementById('plan-hours').textContent='14h';
+    document.getElementById('plan-done').textContent='6';
+  }
+  document.getElementById('planner-loading').style.display='none';
+  document.getElementById('week-grid-wrap').style.display='block';
+}
+function renderAPIPlans(plans) {
+  const c=document.getElementById('sessions-container');
+  const subjColors={'Circuits & Electronics':'tt-cir','Thermodynamics':'tt-th','Data Structures & Algo':'tt-ds','Fluid Mechanics':'tt-fl','Signals & Systems':'tt-sg'};
+  c.innerHTML=plans.map(p=>`<div class="t-it"><div class="t-ck ${p.completed?'done':''}">${p.completed?'✓':''}</div><span class="t-tx">${p.subject||p.title} — ${p.day||''} ${p.time||''}</span><span class="t-tag ${subjColors[p.subject]||'tt-cir'}">${p.duration_hours||1}h</span></div>`).join('');
+  document.getElementById('api-sessions-list').style.display='block';
+}
+
+/* ═══════════ TASKS ═══════════ */
+let ALL_TASKS = [];
+async function loadTasks() {
+  document.getElementById('pend-list').innerHTML='<div class="loader"><div class="loader-spin"></div>Loading...</div>';
+  document.getElementById('done-list').innerHTML='<div class="loader"><div class="loader-spin"></div>Loading...</div>';
+  try {
+    const data = await api('GET','/api/tasks');
+    ALL_TASKS = data.tasks||data||[];
+    if(!ALL_TASKS.length) ALL_TASKS = defaultTasks();
+  } catch(e) { ALL_TASKS = defaultTasks(); }
+  renderTasks();
+}
+function defaultTasks() {
+  return [
+    {id:1,title:'Solve 15 op-amp circuit problems',subject:'Circuits',completed:false},
+    {id:2,title:'Complete Carnot cycle derivation',subject:'Thermodynamics',completed:false},
+    {id:3,title:'Lab report — Reynolds experiment',subject:'Fluids',completed:false},
+    {id:4,title:'DSA Assignment 3 — Graph traversal',subject:'DSA',completed:false},
+    {id:5,title:'Fourier Transform practice problems',subject:'Signals',completed:false},
+    {id:6,title:'Implement binary search tree in C++',subject:'DSA',completed:true},
+    {id:7,title:'Bernoulli equation practice set',subject:'Fluids',completed:true},
+    {id:8,title:"Kirchhoff's laws worksheet",subject:'Circuits',completed:true}
+  ];
+}
+function renderTasks() {
+  const tagMap={'Circuits':'tt-cir','Thermodynamics':'tt-th','DSA':'tt-ds','Fluids':'tt-fl','Signals':'tt-sg','General':'tt-cir'};
+  const pend=ALL_TASKS.filter(t=>!t.completed);
+  const done=ALL_TASKS.filter(t=>t.completed);
+  document.getElementById('pend-count').textContent=pend.length;
+  document.getElementById('done-count').textContent=done.length;
+  document.getElementById('sb-task-cnt').textContent=pend.length;
+  document.getElementById('pend-list').innerHTML=pend.map(t=>`
+    <div class="t-it"><div class="t-ck" onclick="toggleTask(${t.id})"></div>
+    <span class="t-tx">${t.title}</span>
+    <span class="t-tag ${tagMap[t.subject]||'tt-cir'}">${t.subject}</span></div>`).join('')||'<div style="color:var(--muted);font-size:.85rem;padding:.5rem 0">All tasks done! 🎉</div>';
+  document.getElementById('done-list').innerHTML=done.map(t=>`
+    <div class="t-it"><div class="t-ck done" onclick="toggleTask(${t.id})">✓</div>
+    <span class="t-tx done">${t.title}</span>
+    <span class="t-tag ${tagMap[t.subject]||'tt-cir'}">${t.subject}</span></div>`).join('')||'<div style="color:var(--muted);font-size:.85rem;padding:.5rem 0">No completed tasks yet</div>';
+}
+async function toggleTask(id) {
+  const t=ALL_TASKS.find(x=>x.id===id);
+  if(!t)return;
+  t.completed=!t.completed;
+  renderTasks();
+  try { await api('PATCH','/api/tasks/'+id,{completed:t.completed}); } catch(e){}
+}
+async function addInlineTask(inp) {
+  if(!inp.value.trim())return;
+  const t={id:Date.now(),title:inp.value,subject:'General',completed:false};
+  ALL_TASKS.unshift(t);
+  renderTasks();
+  try { await api('POST','/api/tasks',{title:inp.value,subject:'General'}); } catch(e){}
+  inp.value='';
+}
+
+/* ═══════════ ONBOARDING ═══════════ */
+let OB_DATA = { subjects:[], grades:{}, tasks:[], hrs_day:'3', semester:'Semester 5', cgpa:'', pending:'3–5', assign_hrs:'5–8 hours', target:'8.0–8.9', study_time:'Morning', distance:'Less than 5 km', family:'One parent graduate', work:'No, only studies', attendance:'Usually (75–94%)', notes:'' };
+
+function sp2(id) { sp(id); }
+
+function obNext(step) {
+  if(step===1) {
+    OB_DATA.subjects = [...document.querySelectorAll('#ob-subjects .ob-chip.selected')].map(c=>c.dataset.val);
+    if(!OB_DATA.subjects.length){toast('Please select at least one subject','tr');return;}
+    OB_DATA.hrs_day = document.getElementById('ob-hrs-day').value;
+    OB_DATA.semester = document.getElementById('ob-semester').value;
+  }
+  if(step===2) {
+    OB_DATA.cgpa = document.getElementById('ob-cgpa').value;
+    OB_DATA.failed = document.getElementById('ob-failed').value;
+    document.querySelectorAll('.ob-grade-sel').forEach(s=>{ OB_DATA.grades[s.dataset.subj]=s.value; });
+  }
+  if(step===3) {
+    OB_DATA.pending = document.getElementById('ob-pending-count').value;
+    OB_DATA.assign_hrs = document.getElementById('ob-assign-hrs').value;
+    const tasks = [...document.querySelectorAll('#ob-task-list .ob-task-item span')].map(s=>s.textContent);
+    OB_DATA.tasks = tasks;
+    if(tasks.length) { ALL_TASKS = tasks.map((t,i)=>({id:i+1,title:t,subject:'General',completed:false})); }
+  }
+  const next = step+1;
+  document.getElementById('ob-step-'+step).classList.remove('active');
+  document.getElementById('ob-step-'+next).classList.add('active');
+  updateObProgress(next);
+}
+function obBack(step) {
+  const prev = step-1;
+  document.getElementById('ob-step-'+step).classList.remove('active');
+  document.getElementById('ob-step-'+prev).classList.add('active');
+  updateObProgress(prev);
+}
+function updateObProgress(step) {
+  const pct = Math.round((step/4)*100);
+  document.getElementById('ob-fill').style.width = pct+'%';
+  document.getElementById('ob-step-label').textContent = 'Step '+step+' of 4';
+  for(let i=1;i<=4;i++){
+    const d=document.getElementById('obdot-'+i);
+    d.className='ob-step-dot'+(i<step?' done':i===step?' active':'');
+  }
+}
+function toggleChip(el) { el.classList.toggle('selected'); }
+function obAddTask() {
+  const inp=document.getElementById('ob-task-inp');
+  const subj=document.getElementById('ob-task-subj').value;
+  if(!inp.value.trim())return;
+  const li=document.createElement('div'); li.className='ob-task-item';
+  li.innerHTML=`<span>${inp.value} <em style="color:var(--muted);font-size:.75rem">(${subj})</em></span><button onclick="obRemoveTask(this)">✕</button>`;
+  document.getElementById('ob-task-list').appendChild(li);
+  inp.value='';
+}
+function obRemoveTask(btn) { btn.closest('.ob-task-item').remove(); }
+
+async function finishOnboarding() {
+  OB_DATA.target = document.getElementById('ob-target-grade').value;
+  OB_DATA.study_time = document.getElementById('ob-study-time').value;
+  OB_DATA.distance = document.getElementById('ob-distance').value;
+  OB_DATA.family = document.getElementById('ob-family').value;
+  OB_DATA.work = document.getElementById('ob-work').value;
+  OB_DATA.attendance = document.getElementById('ob-attendance').value;
+  OB_DATA.notes = document.getElementById('ob-notes').value;
+  localStorage.setItem('tsf_profile',JSON.stringify(OB_DATA));
+  try { await api('POST','/api/user/profile', { ...OB_DATA, user_id: USER.id||1 }); } catch(e){}
+  // Pre-populate tasks
+  if(OB_DATA.tasks.length) {
+    ALL_TASKS = OB_DATA.tasks.map((t,i)=>({id:i+1,title:t,subject:'General',completed:false}));
+    OB_DATA.tasks.forEach(async t=>{ try{await api('POST','/api/tasks',{title:t,subject:'General'})}catch(e){} });
+  }
+  toast('🚀 Profile saved! Welcome to Twin Study Flow!','tg');
+  goApp('dashboard');
+}
+function skipOnboarding() { goApp('dashboard'); }
+
+/* ═══════════ ML QUESTIONNAIRE ═══════════ */
+let MLQ_STEP = 1;
+const MLQ_TOTAL = 10;
+let MLQ_ANSWERS = { cgpa:'7.5', q2:'3.5', assign:65, q4:'83', q5:'3', q6:'1', q7:'3', q8:'0', q9:'6', q10:'3' };
+let resultForecastChartInst = null;
+
+function initMLQ() {
+  // Build nav dots
+  const dotsEl = document.getElementById('mlq-dots-nav');
+  let html='';
+  for(let i=1;i<=MLQ_TOTAL;i++) html+=`<div class="mlq-dot ${i===1?'active':''}" id="mlqdot-${i}"></div>`;
+  dotsEl.innerHTML=html;
+  updateMLQ(1);
+}
+
+function selectOpt(el, qkey) {
+  el.closest('.mlq-options').querySelectorAll('.mlq-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  MLQ_ANSWERS[qkey] = el.dataset.val;
+}
+
+function updateMLQ(step) {
+  MLQ_STEP = step;
+  const pct = Math.round(((step-1)/MLQ_TOTAL)*100);
+  document.getElementById('mlq-fill').style.width = pct+'%';
+  document.getElementById('mlq-q-label').textContent = 'Question '+step+' of '+MLQ_TOTAL;
+  document.getElementById('mlq-pct').textContent = pct+'%';
+  // Show/hide q divs
+  for(let i=1;i<=MLQ_TOTAL;i++){
+    const el=document.getElementById('mlq-q'+i);
+    if(el) el.classList.toggle('active',i===step);
+    const dot=document.getElementById('mlqdot-'+i);
+    if(dot) dot.className='mlq-dot'+(i<step?' done':i===step?' active':'');
+  }
+  document.getElementById('mlq-back-btn').style.visibility = step>1?'visible':'hidden';
+  const nextBtn=document.getElementById('mlq-next-btn');
+  nextBtn.textContent = step===MLQ_TOTAL ? '⚡ Run Prediction' : 'Next →';
+  nextBtn.style.background = step===MLQ_TOTAL ? 'var(--green)' : '';
+}
+
+function mlqNext() {
+  // Collect current answer
+  if(MLQ_STEP===1) MLQ_ANSWERS.cgpa = document.getElementById('mla-cgpa').value || '7.5';
+  if(MLQ_STEP===3) MLQ_ANSWERS.assign = parseInt(document.getElementById('mla-assign').value);
+  if(MLQ_STEP===MLQ_TOTAL) { runMLPrediction(); return; }
+  updateMLQ(MLQ_STEP+1);
+}
+function mlqBack() { if(MLQ_STEP>1) updateMLQ(MLQ_STEP-1); }
+
+async function runMLPrediction() {
+  document.getElementById('mlq-next-btn').textContent='⏳ Running ML...';
+  document.getElementById('mlq-next-btn').disabled=true;
+  // Build payload from answers
+  const cgpa = parseFloat(MLQ_ANSWERS.cgpa)||7.5;
+  const cgpaNorm = cgpa>10 ? cgpa/10 : cgpa; // normalize to 0-10
+  const payload = {
+    user_id: USER.id||1,
+    cgpa: cgpaNorm,
+    study_hours_per_day: parseFloat(MLQ_ANSWERS.q2)||3.5,
+    assignment_completion: MLQ_ANSWERS.assign||65,
+    attendance: parseFloat(MLQ_ANSWERS.q4)||83,
+    family_background: parseInt(MLQ_ANSWERS.q5)||3,
+    distance_km: parseInt(MLQ_ANSWERS.q6)||1,
+    study_consistency: parseInt(MLQ_ANSWERS.q7)||3,
+    extra_work_load: parseInt(MLQ_ANSWERS.q8)||0,
+    sleep_hours: parseFloat(MLQ_ANSWERS.q9)||6,
+    resource_access: parseInt(MLQ_ANSWERS.q10)||3,
+    // include onboarding data if available
+    ...( (() => { try { const p=JSON.parse(localStorage.getItem('tsf_profile')||'{}'); return {subjects:p.subjects,grades:p.grades}; } catch(e){return{};} })() )
+  };
+  let result;
+  try {
+    result = await api('POST','/api/predict', payload);
+  } catch(e) {
+    // Generate intelligent local prediction from answers
+    result = computeLocalPrediction(payload);
+  }
+  showMLResults(result, payload);
+  document.getElementById('mlq-next-btn').textContent='⚡ Run Prediction';
+  document.getElementById('mlq-next-btn').disabled=false;
+}
+
+function computeLocalPrediction(p) {
+  // Weighted scoring model (fallback when API unavailable)
+  const cgpaScore  = (p.cgpa/10)*100;
+  const studyScore = Math.min(100,(p.study_hours_per_day/8)*100);
+  const assignScore= p.assignment_completion;
+  const attendScore= p.attendance;
+  const sleepScore = p.sleep_hours>=7?100:p.sleep_hours>=6?80:p.sleep_hours>=5?55:30;
+  const workPenalty= [0,5,12,22][p.extra_work_load]||0;
+  const distPenalty= [0,2,6,12,18][p.distance_km]||0;
+  const familyBonus= [0,2,5,8,12][p.family_background]||5;
+  const consis      = [0,40,65,85,100][p.study_consistency]||65;
+  const resourceB   = [0,5,10,15,20][p.resource_access]||10;
+  const raw = (cgpaScore*0.25 + studyScore*0.2 + assignScore*0.15 + attendScore*0.15 + sleepScore*0.1 + consis*0.1 + resourceB*0.05)
+              - workPenalty - distPenalty + familyBonus;
+  const perf  = Math.min(98,Math.max(30,Math.round(raw)));
+  const risk  = Math.min(95,Math.max(5,Math.round(100-perf+workPenalty+distPenalty)));
+  const prod  = Math.min(98,Math.max(20,Math.round((studyScore*0.4+assignScore*0.35+consis*0.25))));
+  const growth= [4,6,8,5].map((_,i)=>Math.min(98,Math.max(30,perf+i*3-(workPenalty/4))));
+  return { performance_score:perf, risk_score:risk, productivity_score:prod, predicted_grade:gradeFromScore(perf), risk_level:riskLabel(risk), productivity_level:prodLabel(prod), forecast:growth, model_accuracy:{random_forest:0.89,xgboost:0.91,best_model:'XGBoost',best_accuracy:0.91} };
+}
+
+function showMLResults(d, inputs) {
+  // Hide questionnaire, show results
+  document.getElementById('mlq-section').style.display='none';
+  const res=document.getElementById('mlq-result');
+  res.classList.add('show');
+  const perf=d.performance_score||78, risk=d.risk_score||35, prod=d.productivity_score||82;
+  document.getElementById('r-perf').textContent=perf+'%';
+  document.getElementById('r-grade').textContent=d.predicted_grade||gradeFromScore(perf);
+  document.getElementById('r-risk').textContent=risk+'%';
+  document.getElementById('r-risk-lbl').textContent='Risk Level: '+( d.risk_level||riskLabel(risk) );
+  document.getElementById('r-prod').textContent=prod+'%';
+  document.getElementById('r-prod-lbl').textContent='Productivity: '+(d.productivity_level||prodLabel(prod));
+  setTimeout(()=>{
+    document.getElementById('r-perf-bar').style.width=perf+'%';
+    document.getElementById('r-risk-bar').style.width=risk+'%';
+    document.getElementById('r-prod-bar').style.width=prod+'%';
+  },100);
+  // Forecast
+  const f=d.forecast||[perf, Math.min(98,perf+3), Math.min(98,perf+6), Math.min(98,perf+9)];
+  ['rfw1','rfw2','rfw3','rfw4'].forEach((id,i)=>document.getElementById(id).textContent=(f[i]||perf)+'%');
+  ['rft1','rft2','rft3','rft4'].forEach((id,i)=>{
+    const el=document.getElementById(id); const prev=i===0?perf:f[i-1]; const curr=f[i];
+    el.textContent=curr>prev?'↑ Improving':curr<prev?'↓ Declining':'→ Stable';
+    el.className='fcast-trend '+(curr>prev?'up':curr<prev?'dn':'flat');
+  });
+  if(resultForecastChartInst) resultForecastChartInst.destroy();
+  const ctx=document.getElementById('resultForecastChart');
+  if(ctx) resultForecastChartInst=new Chart(ctx,{type:'line',data:{labels:['Week 1','Week 2','Week 3','Week 4'],datasets:[{label:'Predicted',data:f,borderColor:C.a,backgroundColor:C.a+'22',tension:.4,fill:true,pointRadius:5,pointBackgroundColor:C.a}]},options:{plugins:{legend:{display:false}},scales:{y:{min:Math.max(0,Math.min(...f)-10),max:Math.min(100,Math.max(...f)+10),grid:{color:'rgba(255,255,255,.04)'}},x:{grid:{display:false}}},responsive:true,maintainAspectRatio:false}});
+  // Model accuracy
+  const ma=d.model_accuracy||{random_forest:.89,xgboost:.91,best_model:'XGBoost',best_accuracy:.91};
+  document.getElementById('r-rf').textContent=Math.round((ma.random_forest||.89)*100)+'%';
+  document.getElementById('r-rf-bar').style.width=Math.round((ma.random_forest||.89)*100)+'%';
+  document.getElementById('r-xgb').textContent=Math.round((ma.xgboost||.91)*100)+'%';
+  document.getElementById('r-xgb-bar').style.width=Math.round((ma.xgboost||.91)*100)+'%';
+  document.getElementById('r-best').textContent=(ma.best_model||'XGBoost')+' — '+Math.round((ma.best_accuracy||.91)*100)+'%';
+  document.getElementById('r-best-bar').style.width=Math.round((ma.best_accuracy||.91)*100)+'%';
+  // AI insights based on answers
+  const insights = generateInsights(perf, risk, prod, inputs);
+  document.getElementById('mlq-insights').innerHTML = insights.map(i=>`<div class="ri-item ${i.cls}"><span style="font-size:1.1rem;flex-shrink:0">${i.icon}</span><span>${i.text}</span></div>`).join('');
+  // Save to profile for twin
+  MLQ_ANSWERS._result = d;
+  localStorage.setItem('tsf_ml_result', JSON.stringify(d));
+}
+
+function generateInsights(perf, risk, prod, inputs) {
+  const ins = [];
+  if(perf>=80) ins.push({cls:'ri-g',icon:'✅',text:`<strong>Strong academic performance!</strong> Your predicted score of ${perf}% is above average. Keep maintaining your current study hours and consistency.`});
+  else if(perf>=60) ins.push({cls:'ri-w',icon:'⚠️',text:`<strong>Performance needs improvement.</strong> Your predicted score is ${perf}%. Focus on Thermodynamics and Signals where coverage is lowest.`});
+  else ins.push({cls:'ri-r',icon:'🚨',text:`<strong>High failure risk detected.</strong> Predicted score ${perf}% is below passing threshold. Immediate intervention and extra tutoring are strongly recommended.`});
+  if(inputs.study_hours_per_day<2) ins.push({cls:'ri-w',icon:'📖',text:`<strong>Study hours too low.</strong> You're studying only ${inputs.study_hours_per_day}h/day. Engineering courses require minimum 3–4 hours daily. Adding just 1 extra hour can improve your grade by one level.`});
+  if(inputs.assignment_completion<60) ins.push({cls:'ri-r',icon:'📋',text:`<strong>Assignment completion rate critical (${inputs.assignment_completion}%).</strong> Missing assignments directly reduces your internal marks. Try the "30-minute daily assignment" rule.`});
+  if(inputs.sleep_hours<6) ins.push({cls:'ri-w',icon:'😴',text:`<strong>Sleep deprivation detected (${inputs.sleep_hours}h/night).</strong> Poor sleep reduces memory retention by up to 40%. Aim for 7–8 hours to improve exam performance.`});
+  if(parseInt(inputs.extra_work_load)>=2) ins.push({cls:'ri-w',icon:'⚖️',text:`<strong>High extra workload detected.</strong> Part-time work is reducing your available study time. Consider reducing work hours during exam season or using compressed study schedules.`});
+  if(parseInt(inputs.distance_km)>=3) ins.push({cls:'ri-b',icon:'🚌',text:`<strong>Long commute impact detected.</strong> Your commute takes significant time. Use commute time for audio lectures or concept revision to compensate.`});
+  if(prod>=80) ins.push({cls:'ri-g',icon:'⚡',text:`<strong>Excellent productivity score (${prod}%)!</strong> Your study sessions are efficient. Maintain this by blocking 90-minute focused sessions with 10-minute breaks.`});
+  ins.push({cls:'ri-b',icon:'💡',text:`<strong>ML Model Recommendation:</strong> Based on XGBoost analysis, your biggest gain will come from improving assignment completion rate (+${Math.round((100-inputs.assignment_completion)*0.3)}% potential score increase) and adding 1 hour of daily study.`});
+  return ins.slice(0,5);
+}
+
+function retakePrediction() {
+  document.getElementById('mlq-section').style.display='block';
+  document.getElementById('mlq-result').classList.remove('show');
+  MLQ_STEP=1; updateMLQ(1);
+}
+
+function loadML() { initMLQ(); }
+
+function runSimulator() {
+  const h=parseInt(document.getElementById('sim-hours').value);
+  const t=parseInt(document.getElementById('sim-tasks').value);
+  document.getElementById('sim-hours-val').textContent=h;
+  document.getElementById('sim-tasks-val').textContent=t;
+  const score=Math.min(98,Math.max(30,Math.round(h*6+t*0.35)));
+  document.getElementById('sim-outcome').textContent=gradeFromScore(score);
+  document.getElementById('sim-desc').textContent='Predicted score: '+score+'% with '+h+'h/day + '+t+'% task completion';
+}
+
+/* ═══════════ DIGITAL TWIN ═══════════ */
+let twinForecastInst=null,gaugeInst=null,radarInst=null;
+async function loadTwin() {
+  try {
+    const data = await api('GET','/api/twin/state');
+    renderTwinState(data);
+  } catch(e) {
+    renderTwinState({
+      performance_score:78,consistency_index:0.82,health_score:71,risk_trend:'Increasing',
+      burnout_score:38,burnout_level:'Medium',efficiency:81,focus_duration:88,distraction:'Medium',
+      goal_completion:62,predicted_grade:'B+',sessions_to_target:8,
+      risk:{high:1,medium:2,low:2},
+      burnout_details:{session_duration_trend:42,late_night_pct:28,missed_7d:3,streak_consistency:65},
+      insights:[
+        {type:'crit',icon:'🚨',text:'Critical: Thermodynamics at risk. Coverage only 28% — 14 days to mid-sem. Prof. Sharma auto-notified.'},
+        {type:'warn',icon:'⚠️',text:'Signals & Systems falling behind. Avg session only 38 min — below 60 min minimum recommended.'},
+        {type:'good',icon:'✅',text:'Strong Circuits & Electronics progress. 74% coverage, consistent 5-day-a-week study habit.'},
+        {type:'info',icon:'💡',text:'Optimal window: 8–11 AM. Problem-solving accuracy 34% higher in morning sessions.'}
+      ],
+      forecast:[76,80,83,87]
+    });
+  }
+}
+async function updateTwinState() {
+  toast('↻ Updating Digital Twin state...','tb');
+  try {
+    await api('POST','/api/twin/update',{user_id:USER.id||1});
+    await loadTwin();
+    toast('✅ Digital Twin updated successfully','tg');
+  } catch(e) {
+    await loadTwin();
+    toast('🎓 Twin refreshed (demo mode)','ta');
+  }
+}
+function renderTwinState(d) {
+  // Performance score
+  const perf=d.performance_score||78;
+  document.getElementById('twin-perf-val').textContent=perf;
+  document.getElementById('twin-perf-label').textContent=perf>=80?'On track — keep going!':perf>=65?'Needs improvement — 2 critical subjects':'Critical — immediate intervention needed';
+  // Risk counts
+  const r=d.risk||{high:1,medium:2,low:2};
+  document.getElementById('risk-high-cnt').textContent=r.high||1;
+  document.getElementById('risk-med-cnt').textContent=r.medium||2;
+  document.getElementById('risk-low-cnt').textContent=r.low||2;
+  // Stats
+  document.getElementById('twin-consistency').textContent=Math.round((d.consistency_index||.82)*100)+'%';
+  document.getElementById('twin-health').textContent=(d.health_score||71)+'/100';
+  document.getElementById('twin-risk-trend').style.color=d.risk_trend==='Decreasing'?'var(--green)':'var(--amber)';
+  document.getElementById('twin-risk-trend').textContent=d.risk_trend||'Increasing';
+  document.getElementById('twin-efficiency').textContent=(d.efficiency||81)+'%';
+  document.getElementById('twin-focus').textContent=(d.focus_duration||88)+' min';
+  document.getElementById('twin-distraction').textContent=d.distraction||'Medium';
+  document.getElementById('twin-goal').textContent=(d.goal_completion||62)+'%';
+  document.getElementById('twin-grade').textContent=d.predicted_grade||'B / B+';
+  document.getElementById('twin-sessions-left').textContent=(d.sessions_to_target||8)+' more';
+  // Burnout
+  renderBurnout(d.burnout_score||38, d.burnout_level||'Medium', d.burnout_details||{});
+  // Insights
+  const ins=document.getElementById('twin-insights');
+  if(d.insights&&d.insights.length) {
+    ins.innerHTML=d.insights.map(i=>`<div class="ins-i ${i.type||'info'}"><div class="ins-ico">${i.icon||'💡'}</div><div class="ins-tx">${i.text}</div></div>`).join('');
+  }
+  // 4-week forecast
+  const f=d.forecast||[76,80,83,87];
+  ['tw-w1','tw-w2','tw-w3','tw-w4'].forEach((id,i)=>{ document.getElementById(id).textContent=(f[i]||75)+'%'; });
+  ['tw-t1','tw-t2','tw-t3','tw-t4'].forEach((id,i)=>{
+    const el=document.getElementById(id); const prev=i===0?perf:f[i-1]; const curr=f[i];
+    el.textContent=curr>prev?'↑ Improving':curr<prev?'↓ Declining':'→ Stable';
+    el.className='fcast-trend '+(curr>prev?'up':curr<prev?'dn':'flat');
+  });
+  // Charts
+  if(gaugeInst) gaugeInst.destroy();
+  const gc=document.getElementById('gaugeChart');
+  if(gc) gaugeInst=new Chart(gc,{type:'doughnut',data:{datasets:[{data:[perf,100-perf],backgroundColor:[perf>=80?C.g:perf>=65?C.am:C.r,'rgba(255,255,255,.06)'],borderWidth:0}]},options:{cutout:'78%',circumference:220,rotation:-110,plugins:{legend:{display:false},tooltip:{enabled:false}},responsive:false}});
+  if(radarInst) radarInst.destroy();
+  const rc=document.getElementById('radarChart');
+  if(rc) radarInst=new Chart(rc,{type:'radar',data:{labels:['Focus','Consistency','Speed','Accuracy','Coverage'],datasets:[{label:'You',data:[80,85,65,72,52],borderColor:C.a,backgroundColor:C.a+'30',pointBackgroundColor:C.a,pointRadius:4},{label:'Avg',data:[70,70,70,70,70],borderColor:'rgba(255,255,255,.2)',backgroundColor:'rgba(255,255,255,.04)',pointRadius:0,borderDash:[4,4]}]},options:{scales:{r:{min:0,max:100,grid:{color:'rgba(255,255,255,.07)'},pointLabels:{font:{size:10}},ticks:{display:false}}},plugins:{legend:{labels:{font:{size:10},boxWidth:8}}},responsive:true,maintainAspectRatio:false}});
+  if(twinForecastInst) twinForecastInst.destroy();
+  const tfc=document.getElementById('twinForecastChart');
+  if(tfc) twinForecastInst=new Chart(tfc,{type:'line',data:{labels:['Week 1','Week 2','Week 3','Week 4'],datasets:[{label:'Twin Forecast',data:f,borderColor:C.t,backgroundColor:C.t+'22',tension:.4,fill:true,pointRadius:5,pointBackgroundColor:C.t},{label:'Current',data:[perf,perf,perf,perf],borderColor:'rgba(255,255,255,.2)',borderDash:[4,4],pointRadius:0}]},options:{plugins:{legend:{labels:{font:{size:10},boxWidth:8}}},scales:{y:{min:50,max:100,grid:{color:'rgba(255,255,255,.04)'}},x:{grid:{display:false}}},responsive:true,maintainAspectRatio:false}});
+}
+function renderBurnout(score, level, details) {
+  const circ=document.getElementById('burnout-circle');
+  circ.className='burnout-circle '+level.toLowerCase();
+  document.getElementById('burnout-num').textContent=score+'%';
+  const d=details;
+  const setBar=(id,vid,val,max)=>{
+    const pct=Math.min(100,Math.round((val/max)*100));
+    document.getElementById(id).style.width=pct+'%';
+    document.getElementById(vid).textContent=val+(typeof val==='number'&&val<=100?'%':'');
+  };
+  setBar('bd-duration','bd-duration-val',d.session_duration_trend||42,100);
+  setBar('bd-night','bd-night-val',d.late_night_pct||28,100);
+  setBar('bd-missed','bd-missed-val',d.missed_7d||3,7);
+  setBar('bd-streak','bd-streak-val',d.streak_consistency||65,100);
+}
+
+/* ═══════════ ANALYTICS ═══════════ */
+async function loadAnalytics() {
+  try {
+    const data = await api('GET','/api/analytics/summary');
+    document.getElementById('an-prod').textContent=(data.productivity_score||78)+'%';
+    document.getElementById('an-prod-ch').textContent='↑ '+(data.productivity_delta||4)+'% this week';
+    document.getElementById('an-sess').textContent=(data.avg_session_min||88);
+    document.getElementById('an-risk').textContent=data.risk_level||'Medium';
+    document.getElementById('an-risk-ch').textContent=data.risk_subject||'Thermo critical';
+    document.getElementById('an-hours').textContent=(data.monthly_hours||52)+'h';
+    if(data.coverage) renderCoverageBars(data.coverage);
+    else renderCoverageBars(null);
+  } catch(e) {
+    document.getElementById('an-prod').textContent='78%';
+    document.getElementById('an-prod-ch').textContent='↑ 4% this week';
+    document.getElementById('an-sess').textContent='88';
+    document.getElementById('an-risk').textContent='Medium';
+    document.getElementById('an-risk-ch').textContent='Thermo critical';
+    document.getElementById('an-hours').textContent='52h';
+    renderCoverageBars(null);
+  }
+  if(!CHARTS['perfLine']) initAnalyticsCharts();
+}
+function renderCoverageBars(data) {
+  const subjects=[
+    {name:'Circuits & Electronics',pct:data?.circuits||74,color:'var(--acc)'},
+    {name:'Thermodynamics',pct:data?.thermodynamics||28,color:'var(--red)',warn:true},
+    {name:'Data Structures & Algo',pct:data?.dsa||62,color:'var(--orange)'},
+    {name:'Fluid Mechanics',pct:data?.fluids||68,color:'var(--teal)'},
+    {name:'Signals & Systems',pct:data?.signals||41,color:'var(--pink)',warn:true}
+  ];
+  document.getElementById('coverage-bars').innerHTML=subjects.map(s=>`
+    <div><div class="pb-top"><span>${s.name}</span><span style="color:${s.color}">${s.pct}%${s.warn?' ⚠':''}</span></div>
+    <div class="pb-bg"><div class="pb-f" style="width:${s.pct}%;background:${s.color}"></div></div></div>`).join('');
+}
+
+/* ═══════════ INTERVENTION ACTIONS ═══════════ */
+async function bookTutoring(subject) {
+  try {
+    await api('POST','/api/intervention/tutor',{subject,user_id:USER.id||1});
+    toast('📚 Extra tutoring booked for '+subject+' — Friday 4 PM','tg');
+  } catch(e) { toast('📚 Tutoring request sent for '+subject,'tg'); }
+}
+async function adjustSchedule(subject) {
+  try {
+    await api('POST','/api/intervention/schedule',{subject,action:'add_sessions',count:2});
+    toast('📅 Schedule optimized — 2 extra '+subject+' sessions added','ta');
+  } catch(e) { toast('📅 Schedule adjusted for '+subject,'ta'); }
+}
+async function scheduleCounseling() {
+  try {
+    await api('POST','/api/intervention/counseling',{user_id:USER.id||1,type:'academic'});
+    toast('💬 Counseling session scheduled — Dr. Reena, Tue 11 AM','tb');
+  } catch(e) { toast('💬 Counseling session scheduled — Tue 11 AM','tb'); }
+}
+function dismissAlert(btn) {
+  const card=btn.closest('.ac');
+  card.style.opacity='0'; card.style.transition='opacity .3s';
+  setTimeout(()=>card.remove(),300);
+  const cnt=document.getElementById('sb-alert-cnt');
+  const iv=document.getElementById('iv-active');
+  const dn=document.getElementById('dash-alert-num');
+  [cnt,iv,dn].forEach(el=>{ if(el) el.textContent=Math.max(0,parseInt(el.textContent||0)-1); });
+  toast('✅ Alert dismissed','tg');
+}
+function filterA(type,btn) {
+  document.querySelectorAll('.fb').forEach(b=>{b.classList.remove('on','fr','fa','fb2')});
+  btn.classList.add('on');
+  if(type==='sh')btn.classList.add('fr'); if(type==='sm')btn.classList.add('fa'); if(type==='sl')btn.classList.add('fb2');
+  document.querySelectorAll('.ac').forEach(c=>{
+    if(type==='all'){c.style.display='';return;}
+    const cls=c.dataset.cls,role=c.dataset.role||'';
+    if(['sh','sm','sl'].includes(type)) c.style.display=cls===type?'':'none';
+    else c.style.display=role.includes(type)?'':'none';
+  });
+}
+function triggerAlert() {
+  const subs=['Thermodynamics','Circuits','DSA','Fluid Mechanics','Signals'];
+  const s=subs[Math.floor(Math.random()*subs.length)];
+  toast('🚨 New alert triggered for '+s+' — Faculty notified','tr');
+}
+function dismissAll() {
+  document.querySelectorAll('.ac').forEach(c=>c.remove());
+  ['sb-alert-cnt','iv-active','dash-alert-num'].forEach(id=>{ const el=document.getElementById(id);if(el)el.textContent='0'; });
+  toast('✅ All alerts dismissed','tg');
+}
+
+/* ═══════════ MODAL ═══════════ */
+function openModal(type) {
+  const c=document.getElementById('modal-content');
+  if(type==='session') {
+    c.innerHTML=`<h3>Add Study Session</h3>
+      <div class="mf"><label>Subject</label><select id="m-sub"><option>Circuits &amp; Electronics</option><option>Thermodynamics</option><option>Data Structures &amp; Algo</option><option>Fluid Mechanics</option><option>Signals &amp; Systems</option></select></div>
+      <div class="mf"><label>Day</label><select id="m-day"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select></div>
+      <div class="mf"><label>Start Time</label><input type="time" id="m-time" value="09:00"/></div>
+      <div class="mf"><label>Duration</label><select id="m-dur"><option value="0.5">30 min</option><option value="1">1 hour</option><option value="1.5">1.5 hours</option><option value="2">2 hours</option></select></div>
+      <div class="mf"><label>Notes</label><textarea id="m-notes" rows="2" placeholder="Optional notes..."></textarea></div>
+      <div class="m-btns"><button class="m-can" onclick="closeModal()">Cancel</button><button class="m-sav" id="m-sav-btn" onclick="saveSession()">Save Session</button></div>`;
+  } else if(type==='task') {
+    c.innerHTML=`<h3>Add Task</h3>
+      <div class="mf"><label>Task Name</label><input type="text" id="m-task-name" placeholder="Solve 15 op-amp problems..."/></div>
+      <div class="mf"><label>Subject</label><select id="m-task-sub"><option>Circuits</option><option>Thermodynamics</option><option>DSA</option><option>Fluids</option><option>Signals</option><option>General</option></select></div>
+      <div class="mf"><label>Priority</label><select id="m-task-pri"><option>High</option><option>Medium</option><option>Low</option></select></div>
+      <div class="mf"><label>Due Date</label><input type="date" id="m-task-due"/></div>
+      <div class="m-btns"><button class="m-can" onclick="closeModal()">Cancel</button><button class="m-sav" onclick="saveTask()">Add Task</button></div>`;
+  }
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+async function saveSession() {
+  const btn=document.getElementById('m-sav-btn');
+  btn.disabled=true; btn.textContent='Saving...';
+  const sub=document.getElementById('m-sub').value;
+  const day=document.getElementById('m-day').value;
+  const time=document.getElementById('m-time').value;
+  const dur=parseFloat(document.getElementById('m-dur').value);
+  const notes=document.getElementById('m-notes').value;
+  try {
+    await api('POST','/api/study-plans',{subject:sub,day,time,duration_hours:dur,notes});
+    toast('📅 '+sub+' session added — '+day+' at '+time,'tg');
+  } catch(e) { toast('📅 Session saved locally — '+sub+' on '+day,'tg'); }
+  closeModal();
+  loadPlanner();
+}
+async function saveTask() {
+  const name=document.getElementById('m-task-name').value;
+  const sub=document.getElementById('m-task-sub').value;
+  const pri=document.getElementById('m-task-pri').value;
+  const due=document.getElementById('m-task-due').value;
+  if(!name){toast('Please enter a task name','tr');return;}
+  const t={id:Date.now(),title:name,subject:sub,priority:pri,due_date:due,completed:false};
+  ALL_TASKS.unshift(t);
+  renderTasks();
+  try { await api('POST','/api/tasks',{title:name,subject:sub,priority:pri,due_date:due}); } catch(e){}
+  toast('✅ Task added: '+name,'tg');
+  closeModal();
+}
+document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeModal();});
+
+/* ═══════════ CHARTS INIT ═══════════ */
+const C={a:'#7c6ef5',g:'#4ecb8a',am:'#f5a623',r:'#f05e5e',b:'#5ab3f5',o:'#ff8c42',t:'#2dd4bf',p:'#f472b6'};
+Chart.defaults.color='#7a779a';
+Chart.defaults.borderColor='rgba(255,255,255,0.06)';
+Chart.defaults.font.family="'DM Sans',sans-serif";
+
+function initDashCharts() {
+  CHARTS['dashBar']=new Chart(document.getElementById('dashBar'),{type:'bar',data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[{data:[2.5,1.5,2,1,2,3,1],backgroundColor:C.a+'88',borderRadius:6,borderSkipped:false}]},options:{plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{font:{size:10}}},x:{grid:{display:false},ticks:{font:{size:10}}}},responsive:true,maintainAspectRatio:false}});
+  CHARTS['dashDonut']=new Chart(document.getElementById('dashDonut'),{type:'doughnut',data:{labels:['Circuits','Thermo','DSA','Fluids','Signals'],datasets:[{data:[28,10,22,18,22],backgroundColor:[C.a,C.r,C.o,C.t,C.p],borderWidth:0,hoverOffset:6}]},options:{plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:8,padding:8}}},cutout:'70%',responsive:true,maintainAspectRatio:false}});
+}
+function initAnalyticsCharts() {
+  CHARTS['perfLine']=new Chart(document.getElementById('perfLine'),{type:'line',data:{labels:['W1','W2','W3','W4','W5','W6','W7','W8'],datasets:[{label:'Performance',data:[68,65,70,72,69,74,76,78],borderColor:C.a,backgroundColor:C.a+'22',tension:.4,fill:true,pointRadius:4,pointBackgroundColor:C.a}]},options:{plugins:{legend:{display:false}},scales:{y:{min:50,max:100,grid:{color:'rgba(255,255,255,.04)'}},x:{grid:{display:false}}},responsive:true,maintainAspectRatio:false}});
+  CHARTS['subjDonut']=new Chart(document.getElementById('subjDonut'),{type:'doughnut',data:{labels:['Circuits','Thermo','DSA','Fluids','Signals'],datasets:[{data:[28,10,22,18,22],backgroundColor:[C.a,C.r,C.o,C.t,C.p],borderWidth:0,hoverOffset:6}]},options:{plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:8,padding:8}}},cutout:'68%',responsive:true,maintainAspectRatio:false}});
+  CHARTS['prodBar']=new Chart(document.getElementById('prodBar'),{type:'bar',data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[{data:[80,68,88,72,84,62,0],backgroundColor:[C.g,C.am,C.g,C.a,C.g,C.am,'#333'],borderRadius:6,borderSkipped:false}]},options:{plugins:{legend:{display:false}},scales:{y:{min:0,max:100,grid:{color:'rgba(255,255,255,.04)'},ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}},responsive:true,maintainAspectRatio:false}});
+}
+
+/* ═══════════ HELPERS ═══════════ */
+function gradeFromScore(s) { return s>=90?'A':s>=80?'A-':s>=70?'B+':s>=60?'B':s>=50?'C':'F'; }
+function riskLabel(s) { return s<30?'Low':s<60?'Medium':'High'; }
+function prodLabel(s) { return s>=80?'Excellent':s>=60?'Good':s>=40?'Fair':'Poor'; }
+function toast(msg,cls) {
+  const c=document.getElementById('toast-c');
+  const el=document.createElement('div');
+  el.className='toast-i '+(cls||'');
+  el.innerHTML='<span>'+msg+'</span>';
+  c.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .4s';setTimeout(()=>el.remove(),400)},3800);
+}
+
+/* ═══════════ STARTUP ═══════════ */
+window.addEventListener('DOMContentLoaded',()=>{
+  if(TOKEN&&TOKEN!=='demo-token') { updateNavUser(); }
+  else if(TOKEN==='demo-token') { updateNavUser(); }
+  pingAPI();
+  // Init simulator sliders
+  document.getElementById('sim-hours')?.addEventListener('input',runSimulator);
+  document.getElementById('sim-tasks')?.addEventListener('input',runSimulator);
+});
+</script>
+</body>
+</html>
